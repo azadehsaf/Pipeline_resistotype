@@ -1,0 +1,19 @@
+datas: "/home/azadeh/Documents/Data_test_europ_2023/NGS_QC" 
+output_folder: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/output_QC_NGS_2023"
+reference: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/data" 
+
+pair:
+    R1 : R1
+    R2 : R2
+    
+samples:
+    2310072630EQA01_S118 : 2310072630EQA01_S118,
+    2310074253EQA02_S119 : 2310074253EQA02_S119, 
+    2310074258EQA03_S120 : 2310074258EQA03_S120,
+    2310074265EQA04_S121 : 2310074265EQA04_S121,
+    2310074274EQA05_S122 : 2310074274EQA05_S122,
+    2310074283EQA06_S123 : 2310074283EQA06_S123,
+    2310074287EQA07_S124 : 2310074287EQA07_S124,
+    2310074297EQA08_S125 : 2310074297EQA08_S125,
+    2310074306EQA09_S126 : 2310074306EQA09_S126,
+    2310074332EQA10_S127 : 2310074332EQA10_S127

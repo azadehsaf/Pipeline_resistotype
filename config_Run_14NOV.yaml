@@ -1,0 +1,26 @@
+datas: "/home/azadeh/Documents/Run_14_Nov2023" 
+output_folder: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/output_Run_14_Nov2023"
+reference: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/data" 
+
+pair:
+    R1 : R1
+    R2 : R2
+    
+samples:
+    2309001431BAY_lib1 : 2309001431BAY_lib1,
+    2309015262OZA_lib1 : 2309015262OZA_lib1,
+    2309016368EDD_lib1 : 2309016368EDD_lib1,
+    2309033961DOS_lib1 : 2309033961DOS_lib1,
+    2309084112MOT_lib1 : 2309084112MOT_lib1
+
+#Terminé:
+#    2305085628MMJ_lib1 : 2305085628MMJ_lib1,
+#    2306016965SHI_lib1 : 2306016965SHI_lib1,
+#    2306078897TRW_lib1 : 2306078897TRW_lib1,
+#    2307033368PEN_lib1 : 2307033368PEN_lib1,
+#    2307037502MAN_lib1 : 2307037502MAN_lib1
+#    2307062537TAN_lib1 : 2307062537TAN_lib1,  
+#    2308052340TRM_lib1 : 2308052340TRM_lib1,
+#    2308052347DAI_lib1 : 2308052347DAI_lib1
+#    2308052352FEU_lib1 : 2308052352FEU_lib1,
+#    2308057219NGT_lib1 : 2308057219NGT_lib1

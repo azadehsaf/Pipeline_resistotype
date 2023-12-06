@@ -1,0 +1,20 @@
+
+datas: "/home/azadeh/Documents" 
+output_folder: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/output_sample_2111034062ELM"
+#output_folder: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/output_test"
+reference: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/data" 
+
+pair: 
+    R1: R1
+    R2: R2
+    
+samples:
+    #H37Ra716199_H19_0.25_TpLyseMg_R1: H37Ra716199_H19_0.25_TpLyseMg_R1
+    #H37Ra716199_H19_0.25_TpLyseMg_R2: H37Ra716199_H19_0.25_TpLyseMg_R2
+    #2303078958PON_S121: 2303078958PON_S121
+    #test: test
+    2111034062ELM : 2111034062ELM
+    
+# ~/Documents/221219_NB501255/fastq_gz/H37Ra716199_H19_0.25_TpLyseMg_R1.fastq
+# ~/Documents/221219_NB501255/fastq_gz/H37Ra716199_H19_0.25_TpLyseMg_R2.fastq
+# C: data/samples/B.fastq

@@ -1,0 +1,19 @@
+datas: "/home/azadeh/Documents/sample_5october" 
+output_folder: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/output_test_fabG1"
+#output_folder: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/output_test"
+reference: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/data" 
+
+pair: 
+    R1: R1
+    R2: R2
+    
+samples:
+    2306005744JAY_redeposit_S90 : 2306005744JAY_redeposit_S90
+    
+
+
+
+    
+# ~/Documents/221219_NB501255/fastq_gz/H37Ra716199_H19_0.25_TpLyseMg_R1.fastq
+# ~/Documents/221219_NB501255/fastq_gz/H37Ra716199_H19_0.25_TpLyseMg_R2.fastq
+# C: data/samples/B.fastq

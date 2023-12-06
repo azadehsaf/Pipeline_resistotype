@@ -1,0 +1,31 @@
+
+datas: "/home/azadeh/Documents/sample_5october" 
+output_folder: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/output_5october"
+#output_folder: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/output_test"
+reference: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/data" 
+
+pair: 
+    R1: R1
+    R2: R2
+    
+samples:
+    2305005805SAN_redeposit_S94 : 2305005805SAN_redeposit_S94,
+    2305033607HOA_redeposit_S89 : 2305033607HOA_redeposit_S89,
+    2305061755JAN_redeposit_S88 : 2305061755JAN_redeposit_S88,
+    2305005805SAN_redeposit_S94 : 2305005805SAN_redeposit_S94,
+    2305033607HOA_redeposit_S89 : 2305033607HOA_redeposit_S89,
+    2305061755JAN_redeposit_S88 : 2305061755JAN_redeposit_S88,
+    2305069063BAS_redeposit_S96 : 2305069063BAS_redeposit_S96,
+    2306005744JAY_redeposit_S90 : 2306005744JAY_redeposit_S90,
+    2306013000CHA_redeposit_S92 : 2306013000CHA_redeposit_S92,
+    2307047785KIL_redeposit_S93 : 2307047785KIL_redeposit_S93,
+    2307061814DAR_redeposit_S91 : 2307061814DAR_redeposit_S91,
+    2308004951MOU_redeposit_S95 : 2308004951MOU_redeposit_S95
+
+
+
+
+    
+# ~/Documents/221219_NB501255/fastq_gz/H37Ra716199_H19_0.25_TpLyseMg_R1.fastq
+# ~/Documents/221219_NB501255/fastq_gz/H37Ra716199_H19_0.25_TpLyseMg_R2.fastq
+# C: data/samples/B.fastq

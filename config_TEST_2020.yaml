@@ -1,0 +1,11 @@
+datas: "/home/azadeh/Documents/Data_test_europ_2020" 
+output_folder: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/output_test_europ_2020"
+reference: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/data" 
+
+pair:
+    R1 : R1
+    R2 : R2
+    
+samples:
+    2011009759ECD05_lib : 2011009759ECD05_lib,
+    QC13_de : QC13_de

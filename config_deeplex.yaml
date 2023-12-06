@@ -1,0 +1,22 @@
+datas: "/home/azadeh/Documents/Deeplex" 
+output_folder: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/output_Deeplex"
+reference: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/data" 
+
+pair:
+    R1 : R1
+    R2 : R2
+    
+samples:
+    2310077324SUL_lib : 2310077324SUL_lib
+    
+#Terminé:
+#    2305085628MMJ_lib1 : 2305085628MMJ_lib1,
+#    2306016965SHI_lib1 : 2306016965SHI_lib1,
+#    2306078897TRW_lib1 : 2306078897TRW_lib1,
+#    2307033368PEN_lib1 : 2307033368PEN_lib1,
+#    2307037502MAN_lib1 : 2307037502MAN_lib1
+#    2307062537TAN_lib1 : 2307062537TAN_lib1,  
+#    2308052340TRM_lib1 : 2308052340TRM_lib1,
+#    2308052347DAI_lib1 : 2308052347DAI_lib1
+#    2308052352FEU_lib1 : 2308052352FEU_lib1,
+#    2308057219NGT_lib1 : 2308057219NGT_lib1
