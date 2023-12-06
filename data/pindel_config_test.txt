@@ -1,0 +1,1 @@
+/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/output/sorted_reads/2303078958PON_S121.sorted.bam 400 2303078958PON_S121

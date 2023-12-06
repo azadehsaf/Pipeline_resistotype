@@ -1,0 +1,10 @@
+#/bin/bash
+
+name=$1
+shift
+
+./SpolPred $@
+
+sed -i "s/^[^\t]*/$name/" /tmp/output.txt
+
+exit 0

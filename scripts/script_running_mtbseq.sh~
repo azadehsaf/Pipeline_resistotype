@@ -1,0 +1,6 @@
+conda activate /home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/.snakemake/conda/6cb0bf04f3309f1ec2fd2bc6fab5c641_
+gzip -c $1 > $3
+gzip -c $2 > $4
+cd $5
+MTBseq --step TBfull --threads {threads} --lowfreq_vars 1 --minfreq 2 --mincovf 2 --mincovr 2 --minbqual 13 2> ../mtbseq_all_error
+conda deactivate

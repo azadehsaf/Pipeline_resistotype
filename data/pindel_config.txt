@@ -1,0 +1,1 @@
+/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/output_5october//2305005805SAN_redeposit_S94/sorted_reads/2305005805SAN_redeposit_S94.sorted.bam 400 2305005805SAN_redeposit_S94
