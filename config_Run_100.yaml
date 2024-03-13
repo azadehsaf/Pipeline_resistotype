@@ -1,0 +1,32 @@
+datas: "/home/azadeh/Documents/Run_100" 
+output_folder: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/output_Run_100"
+reference: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/data" 
+
+pair:
+    R1 : R1
+    R2 : R2
+    
+samples:
+    2307047785KIL_S215 : 2307047785KIL_S215,
+    2305069063BAS_S218 : 2305069063BAS_S218,
+    2305005805SAN_S216 : 2305005805SAN_S216,
+    2306005744JAY_S212 : 2306005744JAY_S212,
+    2308004951MOU_S217 : 2308004951MOU_S217,
+    2305033607HOA_S211 : 2305033607HOA_S211,
+    2305061755JAN_S210 : 2305061755JAN_S210,
+    2307061814DAR_S213 : 2307061814DAR_S213,
+    2306013000CHA_S214 : 2306013000CHA_S214
+
+
+
+
+    
+    
+
+
+
+
+
+
+
+

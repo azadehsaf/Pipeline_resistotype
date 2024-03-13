@@ -1,4 +1,4 @@
-Antibio	ANN[*].GENE
+Antibio	GENE
 RIF	rpoB
 RIF	manB
 RIF	rpoA
@@ -33,6 +33,10 @@ EMB	ubiA
 EMB	rmlD
 FQ	gyrA
 FQ	gyrB
+LFX	gyrA
+LFX	gyrB
+MFX	gyrA
+MFX	gyrB
 STR	rrs
 STR	rpsL
 STR	gid
