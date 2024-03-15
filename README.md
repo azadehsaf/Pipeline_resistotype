@@ -8,6 +8,6 @@ Once conda environment is activated then you can run the pipeline :
 
 snakemake -s snakefile_WHO2023_Withcomment --use-conda --core 15
 
-The pipeline activate MTBseq conda environment while running MTBseq rule. 
+The pipeline activates MTBseq conda environment while running MTBseq rule. 
 
 
