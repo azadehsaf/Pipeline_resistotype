@@ -47,7 +47,7 @@ AA_abreviation= { 'C':'CYS', 'D':'ASP', 'S':'SER',  'Q' : 'GLN',  'K' : 'LYS',  
 
 
 
-d_drug={'Amikacin':'AMK' , 'Bedaquiline':'BDQ', 'Capreomycin' :'CAP', 'Clofazimine' :'CFZ', 'Delamanid':'DLM', 'Ethambutol':'EMB', 'Ethionamide':'ETO' , 'Isoniazid':'INH' , 'Kanamycin':'KAN', 'Levofloxacin' : 'LFX' , 'Linezolid':'LNZ', 'Moxifloxacin':'MFX', 'Pyrazinamide':'PZA', 'Rifampicin':'RIF' , 'Streptomycin':'STR' , 'Fluoroquinolones' : 'FQ' , 'Ciprofloxacin' : 'CIP', 'Ofloxacin' :'OFX' , 'Para-aminosalicylic': 'PAS' , 'Aminoglycosides' : 'AMG',  'Cycloserine' : 'CYS' }
+d_drug={'Amikacin':'AMK' , 'Bedaquiline':'BDQ', 'Capreomycin' :'CAP', 'Clofazimine' :'CFZ', 'Delamanid':'DLM', 'Ethambutol':'EMB', 'Ethionamide':'ETO' , 'Isoniazid':'INH' , 'Kanamycin':'KAN', 'Levofloxacin' : 'LFX' , 'Linezolid':'LNZ', 'Moxifloxacin':'MFX', 'Pyrazinamide':'PZA', 'Rifampicin':'RIF' , 'Streptomycin':'STR' , 'Fluoroquinolones' : 'FQ' , 'Ciprofloxacin' : 'CIP', 'Ofloxacin' :'OFX' , 'Para-aminosalicylic': 'PAS' , 'Aminoglycosides' : 'AMG',  'Cycloserine' : 'CYS', 'Para-aminosalicylic_acid' :'PAS' }
  
 
 
@@ -64,9 +64,15 @@ def shorten(x):
 
 #translate three letters AA to one 
 def using_d_AA_to_translate(x):
+    #print(x)
     y=''
     X=str(x).replace('p.','').upper()
-    first=d_AA[X[0:3]]
+
+    if X[0]=="_" :
+        y=X[3:len(X)-3]+d_AA[X[-3:len(X)]]
+        return y
+
+    first=d_AA[X[0:3]]   
     if X[len(X)-1]=="*" or  X[len(X)-1]=="_":
         
        y+=first+X[3:len(X)]
@@ -74,6 +80,7 @@ def using_d_AA_to_translate(x):
         second=d_AA[X[-3:len(X)]]
         y+=first+X[3:len(X)-3]+second
     return y
+
 
 def using_d_Abreviation_to_AA_translate(x):
     #print(x)
