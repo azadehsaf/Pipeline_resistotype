@@ -1,0 +1,695 @@
+import pandas as pd
+from snakemake.utils import validate
+from datetime import date
+
+configfile : "config_Run_106.yaml"
+today = date.today()
+refName="AL123456.3"
+datain=config["datas"]
+outfolder=config["output_folder"]
+ref=config["reference"]
+
+rule all:
+    input:
+        decompress=expand(datain+"/{sample}_{mate}.fastq", sample=config["samples"], mate=config["pair"]),
+        unzipping=expand(datain+"/{sample}_{mate}.fastq", sample=config["samples"], mate=config["pair"]),
+        outSpolPred_R=expand(outfolder+"/{sample}/spolpred_spoligoTyping/{sample}_R2_spoligoType_R", sample=config["samples"], datain=config["datas"]),
+        outSpolPred_D=expand(outfolder+"/{sample}/spolpred_spoligoTyping/{sample}_R1_spoligoType_D", sample=config["samples"], datain=config["datas"]),
+        outSpolPred_concatenated=expand(outfolder+"/{sample}/spolpred_spoligoTyping/{sample}_spoligoType_DRall",   sample=config["samples"],datain=config["datas"]),
+        qc=expand(outfolder+"/{sample}/fastqc_qc/{sample}_{mate}_fastqc.zip", mate=config["pair"], sample=config["samples"]),   
+        mapping=expand(outfolder+"/{sample}/mapped_reads/{sample}.bam", sample=config["samples"]),
+        coverageGenesout=expand(outfolder+"/{sample}/coverage/{sample}_coverageResistGenes",sample=config["samples"]),
+        non_coveredGenes_out=expand(outfolder+"/{sample}/coverage/{sample}_coverageResistGenes_selectedNonCovered.txt", sample=config["samples"]),
+        snpEffvcfout=expand(outfolder+"/{sample}/snpEff_snp_calling/{sample}_varscan_snpEff.vcf", sample=config["samples"]),
+        vcfoutFreeBayes=expand(outfolder+"/{sample}/snpEff_snp_calling/{sample}_freeBayes_snpEff.vcf",  sample=config["samples"]),
+        vcfinpu_Chrom_Modified=expand(outfolder+"/{sample}/snpSift_DB_file/{sample}_freeBayes_snpEff_chromModified.vcf",  sample=config["samples"]),
+        output_annotate_DB_2023_varscan=expand(outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_DB_varscan.vcf",sample=config["samples"]),
+     
+        input_reformat_join_bed_db=expand(outfolder+"/{sample}/join_DB_file/{sample}_extracted_varscan_snpEff_join_notreformat.tab",sample=config["samples"]),
+        input_reformat_join_bed_db_WHO=expand(outfolder+"/{sample}/join_DB_file/{sample}_extracted_varscan_snpEff_join_notreformat_WHO2023.tab",sample=config["samples"]),
+        outputfile_snpsift=expand(outfolder+"/{sample}/snpSift_extracted_snpEff/{sample}_extracted_varscan_snpEff.txt", sample=config["samples"]),
+        outputfile_snpsift_WHO=expand(outfolder+"/{sample}/snpSift_extracted_snpEff/{sample}_extracted_varscan_snpEff_WHO2023.txt", sample=config["samples"]),
+        
+        final_table_without_repeat=expand(outfolder+"/{sample}/final_results_assembling_files/{sample}_finale_table_AntiBiotics_noRodundant.txt", sample=config["samples"]),
+        join_bed_selected_cols_sans_header=expand(outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_temps_varscan_join_sans_header.txt", sample=config["samples"]),
+        freebayes_join_bed_selected_cols_sans_header=expand(outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_temps_freebayes_join_sans_header.txt", sample=config["samples"]),
+        output_join_bed_selected_cols=expand(outfolder+"/{sample}/join_DB_file/{sample}_join_DB.bed_selected_cols",  sample=config["samples"]),
+        output_join_bed_selected_cols_WHO2023=expand(outfolder+"/{sample}/join_DB_file/{sample}_join_DB.bed_selected_cols_WHO2023",  sample=config["samples"]),
+        
+        join_both_DB_varscan_NoDuplicat=expand(outfolder+"/{sample}/join_DB_file/{sample}_join_both_DB_Final_containingWHO_varscan_NoDuplicat.txt",  sample=config["samples"]),
+        BeforeFiltering_annotate=expand(outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_DB_beforeFiltering.vcf",  sample=config["samples"]),
+        output_vartype_DB_2023_bfFiltering=expand(outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_vartype_DB_beforeFiltering.vcf", sample=config["samples"]),
+        BeforeFiltering_annotate_WHO_freebayes=expand(outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_WHO2023_freebayes_beforeFiltering.vcf", sample=config["samples"]),
+        output_vartype_DB_WHO2023=expand(outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_vartype_WHO2023_freebayes_beforeFiltering.vcf", sample=config["samples"]),
+        
+        output_annotate_DB_2023=expand(outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_WHO2023_varscan.vcf",  sample=config["samples"]),
+        extractedField_snpEffFreebayes=expand(outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_snpEffFreeBayes_geneBed.txt",  sample=config["samples"]),
+        extractedField_snpEffFreebayes_WHO2023=expand(outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_snpEffFreeBayes_geneBed_WHO2023.txt",  sample=config["samples"]),
+        extractedField_snpEffFreebayes_varType_DB=expand(outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_snpEffFreeBayes_geneBed_vartype.txt", sample=config["samples"]),
+        extractedField_snpEffFreebayes_varType_WHO2023=expand(outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_snpEffFreeBayes_geneBed_vartype.txt", sample=config["samples"]),
+        output_join_bed_freebayes=expand(outfolder+"/{sample}/join_DB_intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_join_DB.bed",  sample=config["samples"]),
+        output_join_bed_freebayes_who2023=expand(outfolder+"/{sample}/join_DB_intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_join_DB_WHO2023.bed",  sample=config["samples"]),
+        output_join_bed_selected_cols_sorted_freebayes=expand(outfolder+"/{sample}/join_DB_intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_join_DB_selected_cols_sorted.txt",  sample=config["samples"]),
+        output_join_bed_selected_cols_sorted_freebayes_WHO2023=expand(outfolder+"/{sample}/join_DB_intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_join_DB_selected_cols_sorted_WHO2023.txt",  sample=config["samples"]),
+        join_both_DB_Freebayes=expand(outfolder+"/{sample}/join_DB_intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_join_both_DB_Final_containingWHO_Freebayes.txt", sample=config["samples"]),
+        join_both_DB_Freebayes_Noduplicat=expand(outfolder+"/{sample}/join_DB_intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_join_both_DB_Final_containingWHO_Freebayes_NoDuplicat.txt", sample=config["samples"]),
+        join_bed_selected_cols_sorted_not_rrs_rrl=expand(outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_extractedField_IntersectIntervall_join_DB_selected_cols_sorted_not_rrs_rrl.txt",  sample=config["samples"]),
+        join_bed_selected_cols_sorted_rrs_rrl=expand(outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_extractedField_IntersectIntervall_join_DB_selected_cols_sorted_rrs_rrl.txt",  sample=config["samples"]),
+        join_POS_not_rrs_rrl=expand(outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_join_POS_rrs_rrl.txt",  sample=config["samples"]),
+        selected_cols_join_POS_rrs_rrl=expand(outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_selected_cols_join_POS_rrs_rrl.txt",  sample=config["samples"]),
+        select_line_join_POS_rrs_rrl_sorted=expand(outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_sorted_not_rrs_rrl_pos.txt",  sample=config["samples"]),
+        big_table_join_antiBiotics=expand(outfolder+"/{sample}/final_results_assembling_files/{sample}_big_table_not_rrs_rrl_join_with_AntiBiotics.txt",  sample=config["samples"]),
+        all_gene_join_antiBiotics_selected_sorted=expand(outfolder+"/{sample}/final_results_assembling_files/{sample}_finale_table_AntiBiotics.txt",  sample=config["samples"]),
+        vcf=expand(outfolder+"/{sample}/variant_calling_varscan/all_varscan.vcf", sample=config["samples"]),                                                                         
+        varscan_snp=expand(outfolder+"/{sample}/variant_calling_varscan/all_varscan.tab", sample=config["samples"]),
+        varscan_pos_freq=expand(outfolder+"/{sample}/variant_calling_varscan/pos_freq_all_varscan.tab" , sample=config["samples"]),
+        gene_join_lineage=expand(outfolder+"/{sample}/final_results_assembling_files/{sample}_temps_Tb_mutation_lineage.txt",  sample=config["samples"]),
+        tbProfilerout_results=expand(outfolder+"/{sample}/tb_profiler_results_files/{sample}_tbprofiler_report.results.pdf", sample=config["samples"]),
+        tbProfilerout_results_txt=expand(outfolder+"/{sample}/tb_profiler_results_files/results/{sample}_tbprofiler_report.results.txt", sample=config["samples"]),
+        mtbseq_called=expand(outfolder+"/{sample}/mtbseq_results_files/Called/{sample}.gatk_position_variants_cf2_cr2_fr2_ph4_outmode001.tab",sample=config["samples"]),
+        mtbseq_called_classificatin=expand(outfolder+"/{sample}/mtbseq_results_files/Classification/Strain_Classification.tab",sample=config["samples"]),
+        mtbseq_called_mutations_region_name=expand(outfolder+"/{sample}/{sample}_called_mutation_name.tab",sample=config["samples"]),
+        mtbseq_called_mutations_region_id=expand(outfolder+"/{sample}/{sample}_called_mutation_id.tab",sample=config["samples"]),
+        mtbseq_called_mutations_report=expand(outfolder+"/{sample}/{sample}_MTBseq_final_report.tab",sample=config["samples"]),
+        all_varscan_freebayes_temp=expand(outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_concat_varscan_freebayes_temp.txt", sample=config["samples"]),
+        join_table_join_sorted_antiBiotics=expand(outfolder+"/{sample}/{sample}_join_table_dailyPipeline_Tbprofiler_MTBseq.csv",  sample=config["samples"]),
+        join_table_join_sorted_antiBiotics_notfiltered=expand(outfolder+"/{sample}/{sample}_join_table_dailyPipeline_Tbprofiler_MTBseq_NOTFiltered.csv",
+        final_lineage=expand(outfolder+"/{sample}/final_results_assembling_files/{sample}_Final_lineage.txt",  sample=config["samples"]), sample=config["samples"]),
+        tbprofiler_to_merge=expand(outfolder+"/{sample}/{sample}_tbprofiler_to_merge.txt",  sample=config["samples"]),
+        mtbseq_to_merge=expand(outfolder+"/{sample}/{sample}_mtbseq_to_merge.txt",  sample=config["samples"]),
+
+        test=expand(outfolder+"/{sample}/mtbseq_results_files/test",  sample=config["samples"]),
+
+
+#To decompress .DSRC files
+rule decom_DSRC_sample:
+    input:
+         datain+"/{sample}_{mate}.fastq.dsrc"    
+    output:
+         datain+"/{sample}_{mate}.fastq"   
+    threads:4
+    shell:
+        "dsrc d -t{threads} -s {input} > {output}"
+
+#To decompress .gz files
+rule unzip_sample:
+    input:
+        datain+"/{sample}_{mate}.fastq.gz"
+    output:
+        datain+"/{sample}_{mate}.fastq"
+    shell:
+        '''
+        if [ ! -f {output} ]
+        then
+           gunzip -c {input} > {output} 
+        fi
+        '''
+
+# To zip all *.fastq files
+#rule zip_sample:
+#    input:
+#        datain+/{sample}_{mate}.fastq"
+#    output:
+#        datain+/{sample}_{mate}.fastq.gz"
+#    shell:
+#        "gzip -c {input} > {output} " 
+
+
+# Quality control repport for R1.fastq
+rule quality_control_R1:
+    input:
+        datain+"/{sample}_R1.fastq"
+    output:
+        outfolder+"/{sample}/fastqc_qc/{sample}_R1_fastqc.zip"
+    params:
+        outfolder+"/{sample}/fastqc_qc"
+    shell:
+        "~/tools/FastQC/fastqc -o {params} {input}" 
+
+
+# Quality control repport for R2.fastq
+rule quality_control_R2:
+    input:
+        datain+"/{sample}_R2.fastq"
+    output:
+        outfolder+"/{sample}/fastqc_qc/{sample}_R2_fastqc.zip"
+    params:
+        outfolder+"/{sample}/fastqc_qc"
+    shell:
+        "~/tools/FastQC/fastqc -o {params} {input}" 
+
+
+#Spoligotyping forward reads R1
+rule call_spolpred_D:
+    input:
+       datain+"/{sample}_R1.fastq"
+    output:
+      outfolder+"/{sample}/spolpred_spoligoTyping/{sample}_R1_spoligoType_D"
+    shell:
+        "./spolpred/SpolPred {input} -l 40 -b d -o {output} -s on -a 50 -m 2"
+
+#Spoligotyping forward reads R1
+rule call_spolpred_R:
+    input:
+        datain+"/{sample}_R2.fastq"
+    output:
+       outfolder+"/{sample}/spolpred_spoligoTyping/{sample}_R2_spoligoType_R"
+    shell:
+        "./spolpred/SpolPred {input} -l 40 -b r -o {output} -s on -a 50 -m 2"
+
+
+#keeping both spoligotype forward and reverse in the same file 
+rule concatenate_spoligoType_D_R:
+    input:
+        outSpolPred_D=outfolder+"/{sample}/spolpred_spoligoTyping/{sample}_R1_spoligoType_D",
+        outSpolPred_R=outfolder+"/{sample}/spolpred_spoligoTyping/{sample}_R2_spoligoType_R"
+    output:
+        outfolder+"/{sample}/spolpred_spoligoTyping/{sample}_spoligoType_DRall"
+    shell:
+        "cat {input.outSpolPred_D} {input.outSpolPred_R} > {output}"
+
+
+#Mapping both forward and reverse reads using BWA mem  ( H37RV reference genome, GCF_000195955.2_ASM19595v2_genomic.fa )
+rule bwa_map: # log ne fonctionne pas
+    input:
+        fa=ref+"/GCF_000195955.2_ASM19595v2_genomic.fa",
+        fastq1=datain+"/{sample}_R1.fastq",
+        fastq2=datain+"/{sample}_R2.fastq"
+    log: 
+        log_mapping=outfolder+"/{sample}/mapped_reads/{sample}.log" 
+    output:
+        mapping=outfolder+"/{sample}/mapped_reads/{sample}.bam"
+    shell:
+        "bwa mem -t {threads} {input.fa} {input.fastq1} {input.fastq2} -v1  | samtools view -Sb  > {output.mapping}"
+
+
+#sorting mapped reads 
+rule samtools_sort:
+    input:
+       outfolder+"/{sample}/mapped_reads/{sample}.bam"   
+    output:
+        bam=outfolder+"/{sample}/sorted_reads/{sample}.sorted.bam",
+        bai=outfolder+"/{sample}/sorted_reads/{sample}.sorted.bam.bai"
+    shell:
+        '''
+        samtools sort -O bam {input} -o {output.bam}
+        samtools index {output.bam} {output.bai}
+        '''
+
+
+#Using freeBayes for variant calling after mapping, the custom parameters is set to better identify low frequency variants
+rule FreeBayes:
+    input:
+        bam=outfolder+"/{sample}/sorted_reads/{sample}.sorted.bam",
+        fa=ref+"/GCF_000195955.2_ASM19595v2_genomic.fa", 
+        bed=ref+"/interval2023_chrom_replaced.bed"   
+    output:
+        vcfout=outfolder+"/{sample}/freebayes_variant_calling/{sample}_freeBayes.vcf", 
+    shell:
+        "freebayes -f {input.fa} -t {input.bed} -m 30 -q 20 -Q 0 -S 0 -F 0.08 -n 3 --report-all-haplotype-alleles -b {input.bam}  > {output}"
+
+#-m 30 -q 20 -Q 0 -S 0 -F 0.08 -n 3 c'est le param qui fonctionne avec gyrA et katG
+
+#Bedtools coverage is used for the purpose of finding all genes that are not covered by sequencing
+rule Coverage:
+    input:
+        bam=outfolder+"/{sample}/sorted_reads/{sample}.sorted.bam",
+        bed=ref+"/interval2023_chrom_replaced.bed",  
+        fa=ref+"/AL123456.3.fa.fai" 
+    output:
+        coverageGenesout=outfolder+"/{sample}/coverage/{sample}_coverageResistGenes" 
+    run:
+        shell("bedtools coverage -split -a {input.bed} -b {input.bam} |sed '1ichrom\tstart\tend\tgene\tDepthOfRedas\tBreadthCov\tBreadthNeeded\tBreadthFraction'> {output}") #  -g {input.fa}
+        
+
+#selecting the genes non-covered 
+rule Select_Coverage:
+    input:
+        coverageGenesinput=outfolder+"/{sample}/coverage/{sample}_coverageResistGenes" 
+    output:
+        non_coveredGenes_out=outfolder+"/{sample}/coverage/{sample}_coverageResistGenes_selectedNonCovered.txt"
+    shell:
+        '''
+        cat  {input.coverageGenesinput} |grep -v "1.0000000" > {output}
+        ''' 
+
+
+
+#varscan is used for variant calling 
+rule call_varscan:
+    input:
+        fa=ref+"/GCF_000195955.2_ASM19595v2_genomic.fa", 
+        bam=outfolder+"/{sample}/sorted_reads/{sample}.sorted.bam", 
+        bed=ref+"/interval2023_chrom_replaced_pindel.bed"
+    output:
+        vcf=outfolder+"/{sample}/variant_calling_varscan/all_varscan.vcf",
+        tab=outfolder+"/{sample}/variant_calling_varscan/all_varscan.tab",
+        pos_freq=outfolder+"/{sample}/variant_calling_varscan/pos_freq_all_varscan.tab"
+    shell:
+        '''
+        samtools mpileup -f {input.fa} {input.bam} | varscan mpileup2snp  pileup2indel --variants --min-coverage 1  --min-avg-qua 10  --output-vcf 1 > {output.vcf}
+        samtools mpileup -f {input.fa} {input.bam} | varscan mpileup2snp  pileup2indel --variants --min-coverage 1  --min-avg-qua 10  > {output.tab}
+        cat  {output.tab} | cut -f2,5 | cut -d':' -f1,5 | tr ':' '\t' | cut -f1,3 | sed 's/Position/POS/g' > {output.pos_freq}
+        '''
+
+#For the sake of annotating all variant called by varscan(H37RV database) SnpEff is used  
+rule SnpEff_varscan_outVCF:
+    input:
+        fa=ref+"/GCF_000195955.2_ASM19595v2_genomic.fa", 
+        vcf=outfolder+"/{sample}/variant_calling_varscan/all_varscan.vcf", 
+       
+    output:
+        vcfmodified=outfolder+"/{sample}/snpEff_snp_calling/{sample}_varscan_snpEff_chrom_modified_input.vcf", 
+        snpEffvcfout=outfolder+"/{sample}/snpEff_snp_calling/{sample}_varscan_snpEff.vcf"
+    shell:
+        '''
+        sed 's/NC_000962.3/Chromosome/g' {input.vcf} > {output.vcfmodified}
+        java  -Xms7000m -Xmx16000m -XX:ParallelGCThreads=2 -XX:+AggressiveHeap  -jar snpEff/snpEff.jar -noStats -ud 400 -ss 2  -hgvsOld -hgvs1LetterAa -i vcf -o vcf -v Mycobacterium_tuberculosis_h37rv {output.vcfmodified} > {output.snpEffvcfout}
+        '''
+
+#SnpSift is used for associating a custom annotation to all variants identified by snpEff (after varscan variant calling)
+#20230720_BASE_FINALE_PMW-HDv2.vcf is a custom database (adding the interpretation of several databse to yeilded variants)
+rule snpSift_annotate_snpEff_varscan:
+    input:
+        vcfinput=outfolder+"/{sample}/snpEff_snp_calling/{sample}_varscan_snpEff.vcf", 
+        vcf_DB_custom=ref+"/20230720_BASE_FINALE_PMW-HDv2.vcf"
+    output:
+        vcfinput_Chrom_Modified=outfolder+"/{sample}/snpSift_DB_file/{sample}_varscan_snpEff_chromModified.vcf", 
+        output_annotate_DB_2023_bfFiltering=outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_DB_varscan.vcf",
+    shell:
+        '''
+        sed 's/Chromosome/AL123456.3/g' {input.vcfinput} > {output.vcfinput_Chrom_Modified}
+        java -Xmx12g -jar snpEff/SnpSift.jar annotate  {input.vcf_DB_custom} {output.vcfinput_Chrom_Modified} > {output.output_annotate_DB_2023_bfFiltering}
+        '''
+
+#SnpSift is used for associating a custom annotation to all variants identified by snpEff (after varscan variant calling)
+#WHO 2023  is a public database (adding the "resistance_grade" to yeilded variants)
+rule snpSift_annotateWHO2023_snpEff_varscan:
+    input:
+        vcfinput=outfolder+"/{sample}/snpEff_snp_calling/{sample}_varscan_snpEff.vcf", 
+        vcf_DB_who2023=ref+"/WHO-UCN-TB-2023-mutations-grade_extrasimple_tabformat.vcf"
+    output:
+        vcfinput_Chrom_Modified=outfolder+"/{sample}/snpSift_DB_file/{sample}_varscan_snpEff_chromModified_NC_000962.3.vcf", 
+        output_annotate_DB_2023=outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_WHO2023_varscan.vcf", 
+    shell:
+        '''
+        sed 's/Chromosome/NC_000962.3/g' {input.vcfinput} > {output.vcfinput_Chrom_Modified}
+        java -Xmx12g -jar snpEff/SnpSift.jar annotate  {input.vcf_DB_who2023} {output.vcfinput_Chrom_Modified} > {output.output_annotate_DB_2023}
+        '''
+
+
+
+#Using SnpSift for extraction all information (ex: variant position, type, frequency, ... ) of interest after annotation 
+rule snpSift_extract_fields_snpEff_varscan:
+    input:
+       annotated_intervall=outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_DB_varscan.vcf", 
+       annotated_intervall_WHO2023=outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_WHO2023_varscan.vcf",
+    output:
+        outputfile_intervall=outfolder+"/{sample}/snpSift_extracted_snpEff/{sample}_extracted_varscan_snpEff.txt",
+        outputfile_WHO2023=outfolder+"/{sample}/snpSift_extracted_snpEff/{sample}_extracted_varscan_snpEff_WHO2023.txt",
+    shell:
+        '''
+        cat {input.annotated_intervall} | ./scripts/vcfEffOnePerLine.pl | java -Xmx12g -jar snpEff/SnpSift.jar extractFields - POS REF ALT ADP \"GEN[0].FREQ\" \"ANN[*].GENEID\" \"ANN[*].GENE\" \"ANN[*].HGVS_P\" \"ANN[*].HGVS_C\" \"P_INTER\" \"W_INTER\" > {output.outputfile_intervall}
+        cat {input.annotated_intervall_WHO2023} | ./scripts/vcfEffOnePerLine.pl | java -Xmx12g -jar snpEff/SnpSift.jar extractFields - POS REF ALT ADP \"GEN[0].FREQ\" \"ANN[*].GENEID\" \"ANN[*].GENE\" \"ANN[*].HGVS_P\" \"ANN[*].HGVS_C\" EVENT DRUG \"N_WHOALL_R\" \"N_WHOALL_S\" \"WHOALL_GRADING\"  > {output.outputfile_WHO2023}
+        ''' 
+     #15 col
+
+#Merging all results; both custom database annotations and WHO2023 annotation are merged (after varscan variant calling and snpEff variant identification)
+#Removing all redundancies 
+rule join_two_DB_extract_fields_snpEff_varscan: 
+    input:
+        annot_db=outfolder+"/{sample}/snpSift_extracted_snpEff/{sample}_extracted_varscan_snpEff.txt",  #col 6
+        annot_db_WHO2023=outfolder+"/{sample}/snpSift_extracted_snpEff/{sample}_extracted_varscan_snpEff_WHO2023.txt",
+        bed=ref+"/interval2023_with_Header_forJoin.bed", #col 4
+        pos_freq=outfolder+"/{sample}/variant_calling_varscan/pos_freq_all_varscan.tab"
+
+    output:
+        after_join_notformated=outfolder+"/{sample}/join_DB_file/{sample}_extracted_varscan_snpEff_join_notreformat.tab",
+        after_join_notformated_WHO=outfolder+"/{sample}/join_DB_file/{sample}_extracted_varscan_snpEff_join_notreformat_WHO2023.tab",
+        output_join_bed_selected_cols=outfolder+"/{sample}/join_DB_file/{sample}_join_DB.bed_selected_cols",
+        output_join_bed_selected_cols_WHO=outfolder+"/{sample}/join_DB_file/{sample}_join_DB.bed_selected_cols_WHO2023",
+        join_both_WHO=outfolder+"/{sample}/join_DB_file/{sample}_join_both_DB_Final_varscan.txt",
+        join_both_final_WHO_NoRedundancy=outfolder+"/{sample}/join_DB_file/{sample}_join_both_DB_Final_containingWHO_varscan_NoDuplicat.txt"
+    shell: 
+        '''
+        python scripts/join_bed_vcf.py {input.annot_db}  {input.bed} {output.after_join_notformated}
+        python scripts/join_bed_vcf.py {input.annot_db_WHO2023}  {input.bed} {output.after_join_notformated_WHO}
+        cat {output.after_join_notformated} | cut -f 1-11 | sort -n -k1,1 > {output.output_join_bed_selected_cols}
+        cat {output.after_join_notformated_WHO} | cut -f 1-14 | sort -n  -k1,1 > {output.output_join_bed_selected_cols_WHO}
+        python scripts/join_bed_vcf.py {output.output_join_bed_selected_cols_WHO}  {output.output_join_bed_selected_cols} {output.join_both_WHO}
+        python scripts/remove_redundancy_joining_both_DB.py {output.join_both_WHO} {output.join_both_final_WHO_NoRedundancy}
+        '''
+       #15 avec frq inclue colonnes
+
+
+#For the sake of annotating all variant called by freeBayes(H37RV database) SnpEff is used  
+rule SnpEff_freeBayes_outVCF:
+    input:
+        fa=ref+"/GCF_000195955.2_ASM19595v2_genomic.fa", 
+        vcf=outfolder+"/{sample}/freebayes_variant_calling/{sample}_freeBayes.vcf" 
+    output:
+        vcfmodified=outfolder+"/{sample}/snpEff_snp_calling/{sample}_freeBayes_snpEff_chrom_modified_input.vcf", 
+        vcfout=outfolder+"/{sample}/snpEff_snp_calling/{sample}_freeBayes_snpEff.vcf" 
+    shell:
+        ''' 
+        sed 's/NC_000962.3/Chromosome/g' {input.vcf} > {output.vcfmodified}
+        java  -Xms7000m -Xmx16000m -XX:ParallelGCThreads=2 -XX:+AggressiveHeap  -jar snpEff/snpEff.jar -noStats -ud 400 -ss 2 -hgvsOld -hgvs1LetterAa -o vcf -v Mycobacterium_tuberculosis_h37rv {output.vcfmodified} > {output.vcfout}
+        '''
+
+#SnpSift is used for associating a custom annotation to all variants identified by snpEff (after freeBayes variant calling)
+#20230720_BASE_FINALE_PMW-HDv2.vcf is a custom database (adding the interpretation of several databse to yeilded variants)
+rule snpSift_annotate_snpEff_freebayes:
+    input:
+        vcfinput=outfolder+"/{sample}/snpEff_snp_calling/{sample}_freeBayes_snpEff.vcf", 
+        vcf_DB_custom=ref+"/20230720_BASE_FINALE_PMW-HDv2.vcf"
+    output:
+        vcfinput_Chrom_Modified=outfolder+"/{sample}/snpSift_DB_file/{sample}_freeBayes_snpEff_chromModified.vcf", 
+        output_annotate_DB_2023_bfFiltering=outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_DB_beforeFiltering.vcf",
+        output_vartype_DB_2023_bfFiltering=outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_vartype_DB_beforeFiltering.vcf" 
+    shell:
+        '''
+        sed 's/Chromosome/AL123456.3/g' {input.vcfinput} > {output.vcfinput_Chrom_Modified}
+        java -Xmx12g -jar snpEff/SnpSift.jar annotate {input.vcf_DB_custom} {output.vcfinput_Chrom_Modified} > {output.output_annotate_DB_2023_bfFiltering}
+        java -Xmx12g -jar snpEff/SnpSift.jar varType {input.vcf_DB_custom} {output.vcfinput_Chrom_Modified} > {output.output_vartype_DB_2023_bfFiltering}
+        '''
+
+#SnpSift is used for associating a custom annotation to all variants identified by snpEff ( after freeBayes variant calling)
+#annotate option is used for SNP annotation, varType is used for DEL and INS annotation 
+#WHO 2023  is a public database (adding the "resistance_grade" to yeilded variants)
+rule snpSift_annotateWHO2023_snpEff_freebayes:
+    input:
+        vcfinput=outfolder+"/{sample}/snpEff_snp_calling/{sample}_freeBayes_snpEff.vcf", 
+        vcf_DB_who2023=ref+"/WHO-UCN-TB-2023-mutations-grade_extrasimple_tabformat.vcf"
+    output:
+        vcfinput_Chrom_Modified=outfolder+"/{sample}/snpSift_DB_file/{sample}_freebayes_snpEff_chromModified_NC_000962.3.vcf", 
+        output_annotate_DB_WHO2023=outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_WHO2023_freebayes_beforeFiltering.vcf",
+        output_vartype_DB_WHO2023=outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_vartype_WHO2023_freebayes_beforeFiltering.vcf"
+    shell:
+        '''
+        sed 's/Chromosome/NC_000962.3/g' {input.vcfinput} > {output.vcfinput_Chrom_Modified}
+        java -Xmx12g -jar snpEff/SnpSift.jar annotate {input.vcf_DB_who2023} {output.vcfinput_Chrom_Modified} > {output.output_annotate_DB_WHO2023}
+        java -Xmx12g -jar snpEff/SnpSift.jar varType {input.vcf_DB_who2023} {output.vcfinput_Chrom_Modified} > {output.output_vartype_DB_WHO2023}
+        '''
+
+# Filtering alla annotations of low quality
+#rule snpSift_annotate_snpEff_freebayes_forBothDB_FilteringQuality:
+#    input:
+#        annotate_DB_2023=outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_DB_beforeFiltering.vcf",
+#        output_annotate_DB_WHO2023=outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_WHO2023_freebayes_beforeFiltering.vcf"
+#    output:
+#        output_annotate_DB_2023_filtered_qualGT500=outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_DB.vcf",
+#        output_annotate_DB_WHO_2023_filtered_qualGT500=outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_WHO2023_freebayes.vcf"
+#    shell:
+#        '''cat  {input.annotate_DB_2023} | java -Xmx12g -jar snpEff/SnpSift.jar filter \"( QUAL > 0 )\" > {output.output_annotate_DB_2023_filtered_qualGT500}
+#           cat  {input.output_annotate_DB_WHO2023} | java -Xmx12g -jar snpEff/SnpSift.jar filter \"( QUAL > 0 )\" > {output.output_annotate_DB_WHO_2023_filtered_qualGT500}
+#        '''
+
+
+
+#SnpSift is used for associating a custom annotation to all variants identified by snpEff ( after freeBayes variant calling)
+##Using SnpSift for extraction all information (ex: variant position, type, frequency, ... ) of interest after annotation
+#Here we put together all SNP, all DEL, all INS with corresponding annotation in the same file.
+rule snpSift_extract_fields_SnpEff_freebayes_DB:
+    input:
+        input_intersect_interval=outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_DB_beforeFiltering.vcf",
+        input_vartype_DB_2023=outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_vartype_DB_beforeFiltering.vcf" 
+    output:
+        extractedField_snpEffFreebayes_DB=outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_snpEffFreeBayes_geneBed.txt",
+        all_DB_reformated=outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_all_bd_reformated.txt",
+        
+        extractedField_varType_DB=outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_snpEffFreeBayes_geneBed_vartype.txt",
+        vartype_DB_reformated=outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_vartype_bd_reformated.txt",
+        merge_db=outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_merging_bd_reformated.txt",
+
+    shell: 
+        """
+        cat {input.input_intersect_interval} | ./scripts/vcfEffOnePerLine.pl | java -Xmx12g -jar snpEff/SnpSift.jar extractFields - POS REF ALT GEN[*].DP GEN[*].RO GEN[*].AO \"ANN[*].GENEID\" \"ANN[*].GENE\" \"ANN[*].HGVS_P\" \"ANN[*].HGVS_C\" \"P_INTER\" \"W_INTER\"  > {output.extractedField_snpEffFreebayes_DB}
+        cat {input.input_vartype_DB_2023} | ./scripts/vcfEffOnePerLine.pl | java -Xmx12g -jar snpEff/SnpSift.jar extractFields - POS REF ALT VARTYPE EVENT \"P_INTER\" \"W_INTER\"  > {output.extractedField_varType_DB}
+        #cat  {output.extractedField_snpEffFreebayes_DB} | grep "del\|ins\|dup" > {output.all_DB_reformated}grep "DEL\|INS"
+        cat  {output.extractedField_snpEffFreebayes_DB}  | awk -F'\t' 'BEGIN{{ print "POS\tvarType\tGEN[*].DP\tGEN[*].RO\tGEN[*].AO\tANN[*].GENEID\tANN[*].GENE\tANN[*].HGVS_P\tANN[*].HGVS_C" }}; {{if ($10 ~ /del/){{ print $1"\tDEL\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }} else {{if (($10 ~ /ins/) || ($10 ~ /dup/)) {{print $1"\tINS\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }}}}}}' > {output.all_DB_reformated}
+        cat {output.extractedField_varType_DB} |awk -F'\t' 'BEGIN{{ print "POS\tREF\tALT\tvarType\tP_INTER\tW_INTER"}};{{if (($4 ~ /DEL/)|| ($4 ~ /INS/))  {{print $1"\t"$2"\t"$3"\t"$4"\t"$6"\t"$7 }}}}'   > {output.vartype_DB_reformated}
+         
+        python scripts/join_bed_vcf.py  {output.vartype_DB_reformated} {output.all_DB_reformated} {output.merge_db}
+        len_merge=`cat {output.merge_db} |wc -l`
+        if [ "$len_merge" -gt "1" ];
+        then
+            sed  -i '/del/d' {output.extractedField_snpEffFreebayes_DB} 
+            sed  -i '/ins/d' {output.extractedField_snpEffFreebayes_DB} 
+            cat {output.merge_db}| sed 1d | awk -F'\t'  '{{print $1"\t"$2"\t"$3"\t"$7"\t"$8"\t"$9"\t"$10"\t"$11"\t"$12"\t"$13"\t"$5"\t"$6}}'  >> {output.extractedField_snpEffFreebayes_DB}
+        fi
+      """
+
+
+#SnpSift is used for associating a custom annotation to all variants identified by snpEff ( after freeBayes variant calling)
+#WHO 2023  is a public database (adding the "resistance_grade" to yeilded variants)
+#Here we put together all SNP, all DEL, all INS with corresponding annotation in the same file.
+rule snpSift_extract_fields_SnpEff_freebayes_WHO:
+    input:
+        input_annotate_WHO_2023=outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_WHO2023_freebayes_beforeFiltering.vcf",
+        input_vartype_DB_WHO2023=outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_vartype_WHO2023_freebayes_beforeFiltering.vcf",
+    output:
+        extractedField_snpEffFreebayes_WHO2023=outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_snpEffFreeBayes_geneBed_WHO2023.txt", 
+        all_who_reformated=outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_all_WHO_reformated.txt",
+        extractedField_varType_WHO2023=outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_snpEffFreeBayes_geneBed_WHO2023_vartype.txt",
+        vartype_who_reformated=outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_vartype_WHO_reformated.txt",
+        merge_who=outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_merging_WHO_reformated.txt",
+
+    shell: 
+        '''
+        cat {input.input_annotate_WHO_2023} | ./scripts/vcfEffOnePerLine.pl | java -Xmx12g -jar snpEff/SnpSift.jar extractFields - POS REF ALT GEN[*].DP GEN[*].RO GEN[*].AO \"ANN[*].GENEID\" \"ANN[*].GENE\" \"ANN[*].HGVS_P\" \"ANN[*].HGVS_C\" EVENT DRUG \"N_WHOALL_R\"  \"N_WHOALL_S\" \"WHOALL_GRADING\"  > {output.extractedField_snpEffFreebayes_WHO2023}
+        cat {input.input_vartype_DB_WHO2023} | ./scripts/vcfEffOnePerLine.pl | java -Xmx12g -jar snpEff/SnpSift.jar extractFields - POS REF ALT  VARTYPE  EVENT DRUG \"N_WHOALL_R\"  \"N_WHOALL_S\" \"WHOALL_GRADING\"  > {output.extractedField_varType_WHO2023}
+        
+        cat  {output.extractedField_snpEffFreebayes_WHO2023}  | awk -F'\t' 'BEGIN{{ print "POS\tvarType\tGEN[*].DP\tGEN[*].RO\tGEN[*].AO\tANN[*].GENEID\tANN[*].GENE\tANN[*].HGVS_P\tANN[*].HGVS_C" }}; {{ if ($10 ~ /del/) {{ print $1"\tDEL\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }} else {{ if (($10 ~ /ins/) || ($10 ~ /dup/)) {{print $1"\tINS\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }}}}}}'  > {output.all_who_reformated}
+        cat {output.extractedField_varType_WHO2023}  | awk -F'\t' 'BEGIN{{ print "POS\tREF\tALT\tvarType\tDRUG\tN_WHOALL_R\tN_WHOALL_S\tWHOALL_GRADING" }}; {{if (($4 ~ /DEL/)|| ($4 ~ /INS/)) {{print $1"\t"$2"\t"$3"\t"$4"\t"$6"\t"$7"\t"$8"\t"$9}}}}' > {output.vartype_who_reformated}
+
+        python scripts/join_bed_vcf.py  {output.vartype_who_reformated} {output.all_who_reformated} {output.merge_who}
+        len_merge=`cat {output.merge_who} |wc -l `
+        if [ "$len_merge" -gt "1" ];
+        then    
+            sed  -i '/del/d' {output.extractedField_snpEffFreebayes_WHO2023} 
+            sed  -i '/ins/d' {output.extractedField_snpEffFreebayes_WHO2023} 
+           cat {output.merge_who}| sed 1d | awk -F'\t'  '{{print $1"\t"$2"\t"$3"\t"$9"\t"$10"\t"$11"\t"$12"\t"$13"\t"$14"\t"$15"\t_\t"$5"\t"$6"\t"$7"\t"$8}}'  >> {output.extractedField_snpEffFreebayes_WHO2023}
+        fi
+        '''
+ 
+#Joining freeBayes variant calling annotationd, for each variant there are WHO2023 annotation and in_house_DB annotation, getting both to gether and removing redundancy, 
+
+rule join_two_DB_extractedField_IntersectIntervall_BedVcf:
+    input:
+        extractedField_snpEffFreebayes_DB2023=outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_snpEffFreeBayes_geneBed.txt", 
+        extractedField_snpEffFreebayes_WHO2023=outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_snpEffFreeBayes_geneBed_WHO2023.txt",
+        bed=ref+"/interval2023_with_Header_forJoin.bed" #col 4sample=config["samples"]),
+    output:
+        output_join_bed=outfolder+"/{sample}/join_DB_intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_join_DB.bed", 
+        output_join_bed_WHO2023=outfolder+"/{sample}/join_DB_intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_join_DB_WHO2023.bed", 
+        output_join_bed_selected_cols_sorted=outfolder+"/{sample}/join_DB_intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_join_DB_selected_cols_sorted.txt",
+        output_join_bed_selected_cols_sorted_WHO2023=outfolder+"/{sample}/join_DB_intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_join_DB_selected_cols_sorted_WHO2023.txt",
+        join_both_final_WHO=outfolder+"/{sample}/join_DB_intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_join_both_DB_Final_containingWHO_Freebayes.txt",
+        join_both_final_WHO_NoRedundancy=outfolder+"/{sample}/join_DB_intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_join_both_DB_Final_containingWHO_Freebayes_NoDuplicat.txt"
+    shell: 
+        ''' python scripts/join_bed_vcf.py {input.extractedField_snpEffFreebayes_DB2023} {input.bed} {output.output_join_bed}
+            python scripts/join_bed_vcf.py {input.extractedField_snpEffFreebayes_WHO2023} {input.bed} {output.output_join_bed_WHO2023}
+            cut -f1-12 {output.output_join_bed} | sort -n -k1,1 > {output.output_join_bed_selected_cols_sorted}
+            cut -f1-15 {output.output_join_bed_WHO2023} | sort -n -k1,1 > {output.output_join_bed_selected_cols_sorted_WHO2023}
+            python scripts/join_bed_vcf_joinOnWHO.py  {output.output_join_bed_selected_cols_sorted_WHO2023} {output.output_join_bed_selected_cols_sorted} {output.join_both_final_WHO}
+            python scripts/remove_redundancy_joining_both_DB.py {output.join_both_final_WHO} {output.join_both_final_WHO_NoRedundancy}
+        '''
+
+#Searching for rrl "rRNA Large subunit"  and rrs "rRNA small subunit" genes, extracting these rrs and rrl genes.
+rule select_join_two_Vcf_rrl_rrs:
+    input:
+        freebayes_join_bed_selected_cols_sorted=outfolder+"/{sample}/join_DB_intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_join_both_DB_Final_containingWHO_Freebayes_NoDuplicat.txt",
+        varscan_join_bed_selected_cols=outfolder+"/{sample}/join_DB_file/{sample}_join_both_DB_Final_containingWHO_varscan_NoDuplicat.txt"
+    output:
+        varscan_join_bed_selected_cols_sans_header=outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_temps_varscan_join_sans_header.txt",
+        freebayes_temp_join_bed_selected_cols_sans_header=outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_temps_freebayes_join_sans_header.txt",
+        all_varscan_freebayes_temp=outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_concat_varscan_freebayes_temp.txt",
+        output_join_bed_selected_cols_sorted_rrs_rrl=outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_extractedField_IntersectIntervall_join_DB_selected_cols_sorted_rrs_rrl.txt", 
+        output_join_bed_selected_cols_sorted_not_rrs_rrl=outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_extractedField_IntersectIntervall_join_DB_selected_cols_sorted_not_rrs_rrl.txt"
+    shell: 
+        '''
+        cat  {input.varscan_join_bed_selected_cols} | sed 1d  | sed 's/$/\tVar/' > {output.varscan_join_bed_selected_cols_sans_header}
+        cat {input.freebayes_join_bed_selected_cols_sorted} | sed 1d | awk -F'\t' '{{print $1"\t"$2"\t"$3"\t"$4"\t"($6*100)/$4"%\t"$7"\t"$8"\t"$9"\t"$10"\t"$11"\t"$12"\t"$13"\t"$14"\t"$15"\t"$16"\t"$17"\tFre"}}' | sed '1iPOS\tREF\tALT\tDP\tFreq_mutated\tGENEID\tGENE\tHGVS_P\tHGVS_C\tEVENT\tDRUG\tN_WHOALL_R\tN_WHOALL_S\tWHOALL_GRADING\tP_INTER\tW_INTER\tProg' > {output.freebayes_temp_join_bed_selected_cols_sans_header}
+        cat  {output.freebayes_temp_join_bed_selected_cols_sans_header} {output.varscan_join_bed_selected_cols_sans_header} >> {output.all_varscan_freebayes_temp}
+        grep "rrs\|rrl\|POS" {output.all_varscan_freebayes_temp} > {output.output_join_bed_selected_cols_sorted_rrs_rrl}
+        grep -v "rrs\|rrl" {output.all_varscan_freebayes_temp} > {output.output_join_bed_selected_cols_sorted_not_rrs_rrl}
+        '''
+
+
+#Finding rrl and rrs genomic position, add position as a number to all annotation 
+rule join_rrs_rrl_pos:
+    input:
+        input_join_bed_selected_cols_sorted_rrs_rrl=outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_extractedField_IntersectIntervall_join_DB_selected_cols_sorted_rrs_rrl.txt", 
+        rrl_rrs_data=ref+"/rrs-rrl_position.txt"#col 1 big_tale_resistance_antiBiotics=outfolder+"/{sample}/final_results_assembling_files/{sample}_big_table_resistance_AntiBiotics.txt",
+    output:
+        join_POS_rrs_rrl=outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_join_POS_rrs_rrl.txt"
+    shell: 
+        "python scripts/join_bed_vcf.py {input.input_join_bed_selected_cols_sorted_rrs_rrl} {input.rrl_rrs_data} {output.join_POS_rrs_rrl}"
+           
+
+#Selecting useful columns after joining rrs and rrl with their genomic position
+rule choose_cols_join_rrs_rrl_pos: # A revoir pour RRL
+    input:
+        join_POS_rrs_rrl=outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_join_POS_rrs_rrl.txt"
+    output:
+        selected_cols_join_POS_rrs_rrl=outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_selected_cols_join_POS_rrs_rrl.txt"
+    shell:
+        """cat {input.join_POS_rrs_rrl} |  awk -F'\t' '{{print $1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$18"\t"$9"\t"$10"\t"$11"\t"$12"\t"$13"\t"$14"\t"$15"\t"$16"\t"$17}}' | sed 1d > {output.selected_cols_join_POS_rrs_rrl}"""
+
+#POS REF	ALT	DP	Freq_mutated	GENEID	GENE	HGVS_P	HGVS_C	EVENT	DRUG	N_WHOALL_R	N_WHOALL_S	WHOALL_GRADING	P_INTER	W_INTER	Prog	NUM
+
+
+#This Rule is for filtering non significant mutations
+# For keeping all mutations comming before the subject genes (promoters).  
+rule cocatenate_and_select_data_set:
+    input:
+        output_join_bed_selected_cols_sorted_not_rrs_rrl=outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_extractedField_IntersectIntervall_join_DB_selected_cols_sorted_not_rrs_rrl.txt", 
+        selected_cols_join_POS_rrs_rrl=outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_selected_cols_join_POS_rrs_rrl.txt"
+    output:
+        cocatenate_not_rrs_rrl_selected_cols_join_POS_rrs_rrl=outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_concatenate_not_rrs_rrl_pos.txt",
+        select_line_join_POS_rrs_rrl_sorted=outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_sorted_not_rrs_rrl_pos.txt", 
+    shell:
+        '''
+        cat {input.output_join_bed_selected_cols_sorted_not_rrs_rrl} {input.selected_cols_join_POS_rrs_rrl}  > {output.cocatenate_not_rrs_rrl_selected_cols_join_POS_rrs_rrl}
+        grep -v -P '[-|\*]\d{{4,5}}' {output.cocatenate_not_rrs_rrl_selected_cols_join_POS_rrs_rrl} | sort -n -k1,1 > {output.select_line_join_POS_rrs_rrl_sorted}
+        '''
+
+#Corresponding mutation to an antibiotics related region  
+rule join_to_AntiBiotics:
+    input:
+        all_cols_join_POS_rrs_rrl_sorted=outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_sorted_not_rrs_rrl_pos.txt", 
+        antibiotics_data=ref+"/ATB-Genes.txt"
+    output:
+        big_table_join_antiBiotics=outfolder+"/{sample}/final_results_assembling_files/{sample}_big_table_not_rrs_rrl_join_with_AntiBiotics.txt"
+        
+    shell:
+        '''
+        python scripts/join_bed_vcf.py {input.all_cols_join_POS_rrs_rrl_sorted} {input.antibiotics_data} {output.big_table_join_antiBiotics}
+        '''
+
+#Generating the table of antibiotics and corresponding mutations    
+rule last_formating:
+    input:
+        big_table_join_antiBiotics=outfolder+"/{sample}/final_results_assembling_files/{sample}_big_table_not_rrs_rrl_join_with_AntiBiotics.txt"
+    output:
+        all_gene_join_antiBiotics_selected_sorted=outfolder+"/{sample}/final_results_assembling_files/{sample}_finale_table_AntiBiotics.txt", 
+        all_gene_join_antiBiotics_selected_sorted_without_repeat=outfolder+"/{sample}/final_results_assembling_files/{sample}_finale_table_AntiBiotics_noRodundant.txt"
+    shell:
+        '''
+        cat {input.big_table_join_antiBiotics} |awk -F'\t' '{{print $18"\t"$1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10"\t"$11"\t"$12"\t"$13"\t"$14"\t"$15"\t"$16"\t"$17}}'| sed 1d | sort -n -k1,1 | sed '1iANTIBIO\tPOS\tREF\tALT\tDP\tFreq_Mutated\tGENEID\tGENE\tHGVS_P\tHGVS_C\tEVENT\tDRUG\tN_WHOALL_R\tN_WHOALL_S\tWHOALL_GRADING\tP_INTER\tW_INTER\tPROG'> {output.all_gene_join_antiBiotics_selected_sorted}
+        python scripts/remove_redundancy.py {output.all_gene_join_antiBiotics_selected_sorted}  {output.all_gene_join_antiBiotics_selected_sorted_without_repeat}
+        '''    
+  
+
+
+# Lineage finding,  using TBgene SNP barcoding, all variant called by varscan are going to be used for lineage finding
+rule join_two_lineage_MTBC_bc_SNPs:
+    input:
+        lineage_bc_snps=ref+"/snp_barcode_trie.tsv", 
+        varscan_variant=outfolder+"/{sample}/variant_calling_varscan/all_varscan.tab"                                                                           
+    output: 
+        varscan_out_renamed=outfolder+"/{sample}/variant_calling_varscan/all_varscan_Position.tab", 
+        gene_join_lineage=outfolder+"/{sample}/final_results_assembling_files/{sample}_temps_Tb_mutation_lineage.txt",
+        final_lineage=outfolder+"/{sample}/final_results_assembling_files/{sample}_Final_lineage.txt"
+    shell:
+        '''        
+        cat {input.varscan_variant} | sed 's/POS/Position/' | sed 's/REF/reference/g' > {output.varscan_out_renamed}
+        python scripts/join_bed_keeping_All_linesVCF.py {output.varscan_out_renamed}  {input.lineage_bc_snps} {output.gene_join_lineage}
+        cat {output.gene_join_lineage} | grep L | cut -f13-17 > {output.final_lineage}
+        '''
+
+#A full pipeline, TB_Profiler is going to be run, the result would be merged with the yield of initial pipeline
+rule TB_profiler:
+    input:
+        r1=datain+"/{sample}_R1.fastq",
+        r2=datain+"/{sample}_R2.fastq"
+    output:
+        tbProfilerout=directory(outfolder+"/{sample}/tb_profiler_results_files"),
+        tbProfilerout_results=outfolder+"/{sample}/tb_profiler_results_files/{sample}_tbprofiler_report.results.pdf",
+        tbProfilerout_results_txt=outfolder+"/{sample}/tb_profiler_results_files/results/{sample}_tbprofiler_report.results.txt"
+    params:
+        res="{sample}_tbprofiler_report"
+    threads:4
+    shell:
+        '''
+        cd  {output.tbProfilerout}
+        tb-profiler profile -t{threads} -1 {input.r1} -2 {input.r2} -p {params.res} --min_depth 5  --txt --csv --pdf 
+        '''
+
+#A full pipeline, MTBseq is going to be run, the result would be merged with the yield of initial pipeline
+rule running_MTbseq:
+    input:        
+        bed=ref+"/interval2023_for_MTBseq.bed",
+        r1=datain+"/{sample}_R1.fastq",
+        r2=datain+"/{sample}_R2.fastq"
+    output:
+        mtbseq_dir=directory(outfolder+"/{sample}/mtbseq_results_files"),
+        samp_r1_gz=outfolder+"/{sample}/mtbseq_results_files/{sample}_R1.fastq.gz",
+        samp_r2_gz=outfolder+"/{sample}/mtbseq_results_files/{sample}_R2.fastq.gz",
+        mtbseq_called=outfolder+"/{sample}/mtbseq_results_files/Called/{sample}.gatk_position_variants_cf2_cr2_fr2_ph4_outmode001.tab",
+        mtbseq_called_classificatin=outfolder+"/{sample}/mtbseq_results_files/Classification/Strain_Classification.tab",
+        test=outfolder+"/{sample}/mtbseq_results_files/test"
+    threads: 10
+    conda : "mtbseq-env.yaml"
+    shell:
+        '''
+        echo 'test' > {output.test}
+         ./scripts/script_running_mtbseq.sh {input.r1} {input.r2}  {output.samp_r1_gz} {output.samp_r2_gz} {output.mtbseq_dir} {threads}
+        '''
+#selecting a subset of variants found by MTBseq, for downstream merging with other results
+rule join_res_MTbseq:
+    input:
+        bed=ref+"/interval2023_for_MTBseq.bed",
+        bed_gene=ref+"/interval2023_for_MTBseq_gene.bed",
+        mtbseq_called=outfolder+"/{sample}/mtbseq_results_files/Called/{sample}.gatk_position_variants_cf2_cr2_fr2_ph4_outmode001.tab",
+        mtbseq_called_classificatin=outfolder+"/{sample}/mtbseq_results_files/Classification/Strain_Classification.tab"
+    output:
+        mtbseq_called_mutations_region_genename=outfolder+"/{sample}/{sample}_called_mutation_name.tab",
+        mtbseq_called_mutations_region_geneid=outfolder+"/{sample}/{sample}_called_mutation_id.tab",
+        mtbseq_called_mutations_report=outfolder+"/{sample}/{sample}_MTBseq_final_report.tab"
+    shell:
+        '''
+        python scripts/join_bed_vcf_MTBseq.py {input.mtbseq_called} {input.bed} {output.mtbseq_called_mutations_region_genename}
+        python scripts/join_bed_vcf_MTBseq_genes.py {input.mtbseq_called} {input.bed_gene} {output.mtbseq_called_mutations_region_geneid}
+        cat {output.mtbseq_called_mutations_region_geneid} | sed 1d >> {output.mtbseq_called_mutations_region_genename}
+        cat {output.mtbseq_called_mutations_region_genename} | awk -F'\t' '{{$1"\t"$3"\t"$5"\t"$10"\t"$9"\t"$11"\t"$12"\t"$13"\t"$14"\t"$15"\t"$16"\t"$17}}' >> {output.mtbseq_called_mutations_report}
+        cat {input.mtbseq_called_classificatin} >> {output.mtbseq_called_mutations_report}
+        '''
+
+#All merging, the rull produces final merge file
+rule result_firstePipeline_tbprofiler:
+    input:
+        tbProfilerout_results=outfolder+"/{sample}/tb_profiler_results_files/results/{sample}_tbprofiler_report.results.txt", 
+        big_table_join_sorted_antiBiotics=outfolder+"/{sample}/final_results_assembling_files/{sample}_finale_table_AntiBiotics_noRodundant.txt",
+        final_lineage=outfolder+"/{sample}/final_results_assembling_files/{sample}_Final_lineage.txt",
+        mtbseq_lin=outfolder+"/{sample}/{sample}_MTBseq_final_report.tab",
+        mtbseq_call=outfolder+"/{sample}/{sample}_called_mutation_name.tab",
+        spoligo=outfolder+"/{sample}/spolpred_spoligoTyping/{sample}_spoligoType_DRall",
+        non_coveredGenes_out=outfolder+"/{sample}/coverage/{sample}_coverageResistGenes_selectedNonCovered.txt"
+    output:
+        tbprofiler_to_merge=outfolder+"/{sample}/{sample}_tbprofiler_to_merge.txt",
+        mtbseq_to_merge=outfolder+"/{sample}/{sample}_mtbseq_to_merge.txt",
+        all_merge_notfiltered=outfolder+"/{sample}/{sample}_join_table_dailyPipeline_Tbprofiler_MTBseq_NOTFiltered.csv",
+        all_merge=outfolder+"/{sample}/{sample}_join_table_dailyPipeline_Tbprofiler_MTBseq.csv"
+    shell:
+        '''
+        cat {input.tbProfilerout_results}  | sed -n  '/^Resistance variants/,/Coverage report/p' | grep -v 'report'  | grep -v '^-' | grep -v '^$' | sort -n -k 1,1 | sed 1d | tr ' ' '_'  > {output.tbprofiler_to_merge}
+        cat {input.mtbseq_call} |  sed 's/#//' |awk -F'\t' '{{print $1"\t"$3"\t"$4"\t"$5"\t"$9"\t"$10"\t"$11"\t"$12"\t"$13"\t"$14"\t"$15"\t"$16"\t"$17}}' > {output.mtbseq_to_merge}
+        python scripts/script_python_merge.py  {input.big_table_join_sorted_antiBiotics} {output.tbprofiler_to_merge}  {output.mtbseq_to_merge} {output.all_merge_notfiltered}
+        cat {output.all_merge_notfiltered} | awk -F'\t' '{{print $1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10"\t"$11"\t"$12"\t"$13"\t"$14"\t"$15"\t"$18}}' >> {output.all_merge}
+        echo "\n\nNon covered genes : \n" >> {output.all_merge}
+        cat {input.non_coveredGenes_out} >> {output.all_merge}
+        echo "\n\nSpoligotyping :\n" >> {output.all_merge}
+        echo "(Spolpred): \n" >> {output.all_merge}
+        cat {input.spoligo}| cut -d'/' -f6 |cut -f1,2 | sed 's/.fastq//g' >>  {output.all_merge}
+        echo "\n\nTB_profiler lineage" >> {output.all_merge}
+        cat {input.tbProfilerout_results} | sed -n  '/^Lineage report/,/Resistance report/p' | grep -v 'report'  | grep -v '^-' | grep -v '^$' | sort -n -k 1,1 | sed 1d | tr ' ' '_' >> {output.all_merge}
+        echo "\n\n" >> {output.all_merge}
+        echo "\n\nMTBC_BC_lineage\n10.1128/msphere.00169-23 \n" >> {output.all_merge}
+        cat  {input.final_lineage} >> {output.all_merge}
+        echo "\n\nMTBseq lineage:\n" >> {output.all_merge}
+        cat  {input.mtbseq_lin} >> {output.all_merge}
+        '''
+        
+
+
