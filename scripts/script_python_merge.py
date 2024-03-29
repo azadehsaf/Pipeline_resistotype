@@ -40,9 +40,9 @@ df1_mtbseq_renamed=df1_mtbseq.rename(columns={'Pos':'POS', 'Ref':'REF', 'Allel':
 
 df1_mtbseq.to_csv("mtbseq_filtered_after_rename.csv", sep='\t', index=False)
 
-d_AA = {'CYS': 'C', 'ASP': 'D', 'SER': 'S', 'GLN': 'Q', 'LYS': 'K', 'ILE': 'I', 'PRO': 'P', 'THR': 'T', 'PHE': 'F', 'ASN': 'N', 'GLY': 'G', 'HIS': 'H', 'LEU': 'L', 'ARG': 'R', 'TRP': 'W', 'ALA': 'A', 'VAL':'V', 'GLU': 'E', 'TYR': 'Y', 'MET': 'M'}
+d_AA = {'CYS': 'C', 'ASP': 'D', 'SER': 'S', 'GLN': 'Q', 'LYS': 'K', 'ILE': 'I', 'PRO': 'P', 'THR': 'T', 'PHE': 'F', 'ASN': 'N', 'GLY': 'G', 'HIS': 'H', 'LEU': 'L', 'ARG': 'R', 'TRP': 'W', 'ALA': 'A', 'VAL':'V', 'GLU': 'E', 'TYR': 'Y', 'MET': 'M' , 'Xaa' : 'X'}
 
-AA_abreviation= { 'C':'CYS', 'D':'ASP', 'S':'SER',  'Q' : 'GLN',  'K' : 'LYS',  'I' : 'ILE', 'P' : 'PRO', 'T' : 'THR', 'F' : 'PHE',  'N' : 'ASN', 'G' : 'GLY', 'H' : 'HIS', 'L' : 'LEU', 'R' : 'ARG',  'W' : 'TRP',  'A' : 'ALA',  'V' : 'VAL', 'E' : 'GLU',  'Y' : 'TYR', 'M' : 'MET'}
+AA_abreviation= { 'C':'CYS', 'D':'ASP', 'S':'SER',  'Q' : 'GLN',  'K' : 'LYS',  'I' : 'ILE', 'P' : 'PRO', 'T' : 'THR', 'F' : 'PHE',  'N' : 'ASN', 'G' : 'GLY', 'H' : 'HIS', 'L' : 'LEU', 'R' : 'ARG',  'W' : 'TRP',  'A' : 'ALA',  'V' : 'VAL', 'E' : 'GLU',  'Y' : 'TYR', 'M' : 'MET' , 'X' : 'Xaa' }
 
 
 
@@ -83,8 +83,8 @@ def using_d_AA_to_translate(x):
 
 
 def using_d_Abreviation_to_AA_translate(x):
-    #print(x)
-    #print (x[len(x)-5:len(x)])
+    print(x)
+    print (x[len(x)-5:len(x)])
     if "ext" in x :
         return(x)
     if  "del" in x  or "ins" in x or "fs" in x :
