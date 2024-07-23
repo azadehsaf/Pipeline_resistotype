@@ -2,7 +2,7 @@ import pandas as pd
 from snakemake.utils import validate
 from datetime import date
 
-configfile : "config_Run_106.yaml"
+configfile : "config_Run_107.yaml"
 today = date.today()
 refName="AL123456.3"
 datain=config["datas"]
@@ -219,7 +219,7 @@ rule Coverage:
     output:
         coverageGenesout=outfolder+"/{sample}/coverage/{sample}_coverageResistGenes" 
     run:
-        shell("bedtools coverage -split -a {input.bed} -b {input.bam} |sed '1ichrom\tstart\tend\tgene\tDepthOfRedas\tBreadthCov\tBreadthNeeded\tBreadthFraction'> {output}") #  -g {input.fa}
+        shell("bedtools coverage  -sorted -split -a {input.bed} -b {input.bam} |sed '1ichrom\tstart\tend\tgene\tDepthOfRedas\tBreadthCov\tBreadthNeeded\tBreadthFraction'> {output}") #  -g {input.fa}
         
 
 #selecting the genes non-covered 

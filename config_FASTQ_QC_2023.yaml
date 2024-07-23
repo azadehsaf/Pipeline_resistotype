@@ -1,5 +1,5 @@
 datas: "/home/azadeh/Documents/Data_test_europ_2023/FASTQ_QC" 
-output_folder: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/output_QC_FASTQ_2023_test"
+output_folder: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/output_QC_FASTQ_2023_Newtest_onlynr14"
 reference: "/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/data" 
 
 pair:
@@ -7,8 +7,11 @@ pair:
     R2 : R2
     
 samples:
-    QC_2023_nr11_filt : QC_2023_nr11_filt,
-    QC_2023_nr12_filt : QC_2023_nr12_filt,
-    QC_2023_nr13_filt : QC_2023_nr13_filt,
-    QC_2023_nr14_filt : QC_2023_nr14_filt,
-    QC_2023_nr15_filt : QC_2023_nr15_filt
+    QC_2023_nr14_filt : QC_2023_nr14_filt
+
+
+#QC_2023_nr11_filt : QC_2023_nr11_filt,
+#    QC_2023_nr12_filt : QC_2023_nr12_filt,
+#    QC_2023_nr13_filt : QC_2023_nr13_filt,
+#    
+#    QC_2023_nr15_filt : QC_2023_nr15_filt
