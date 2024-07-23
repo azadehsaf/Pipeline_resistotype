@@ -2,7 +2,7 @@ import pandas as pd
 from snakemake.utils import validate
 from datetime import date
 
-configfile: "config_deeplex.yaml"
+configfile: "config_deeplex_fabg.yaml"
 today = date.today()
 refName="AL123456.3"
 datain=config["datas"]

@@ -26,7 +26,7 @@ rule all:
         #output_annotate_DB_2023_bfFiltering_pindel=expand(outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_DB_pindel_beforefiltering.vcf",sample=config["samples"]),
         output_annotate_DB_2023_pindel=expand(outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_DB_pindel.vcf",sample=config["samples"]),
         input_reformat=expand(outfolder+"/{sample}/join_DB_file/{sample}_extracted_pindel_snpEff_join_notreformat.tab",sample=config["samples"]),
-        intersect_intervall_pindel=expand(outfolder+"/{sample}/intersect_Intervall_snpEffpindel_annotated/{sample}_intersect_intervallsnpSift_pindel_annotate_DB_2023.vcf",sample=config["samples"]),
+        #intersect_intervall_pindel=expand(outfolder+"/{sample}/intersect_Intervall_snpEffpindel_annotated/{sample}_intersect_intervallsnpSift_pindel_annotate_DB_2023.vcf",sample=config["samples"]),
         outputfile_snpsift_pindel=expand(outfolder+"/{sample}/snpSift_extracted_snpEff/{sample}_extracted_pindel_snpEff.txt", sample=config["samples"]),
         output_annotate_DB_2023_freebayes=expand(outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_DB.vcf",  sample=config["samples"]),
         final_table_without_repeat=expand(outfolder+"/{sample}/final_results_assembling_files/{sample}_finale_table_AntiBiotics_noRodundant.txt", sample=config["samples"]),
@@ -34,7 +34,7 @@ rule all:
         freebayes_join_bed_selected_cols_sans_header=expand(outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_temps_freebayes_join_sans_header.txt", sample=config["samples"]),
         output_join_bed_selected_cols_pindel=expand(outfolder+"/{sample}/join_DB_file/{sample}_join_DB.bed_selected_cols",  sample=config["samples"]),
         BeforeFiltering_annotate_DB_2023=expand(outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_DB_beforeFiltering.vcf",  sample=config["samples"]),
-        intersect_intervall_freebayes=expand(outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_annotated/{sample}_intersect_intervallsnpSift_freebayes_annotate_DB_2023.vcf",  sample=config["samples"]),
+        #intersect_intervall_freebayes=expand(outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_annotated/{sample}_intersect_intervallsnpSift_freebayes_annotate_DB_2023.vcf",  sample=config["samples"]),
         extractedField_snpEffFreebayes_DB2023=expand(outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_snpEffFreeBayes_geneBed.txt",  sample=config["samples"]),
         output_join_bed_freebayes=expand(outfolder+"/{sample}/join_DB_intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_join_DB.bed",  sample=config["samples"]),
         output_join_bed_selected_cols_sorted_freebayes=expand(outfolder+"/{sample}/join_DB_intersect_Intervall_snpEffFreeBayes_DB2023/{sample}_extractedField_IntersectIntervall_join_DB_selected_cols_sorted.txt",  sample=config["samples"]),
@@ -279,14 +279,14 @@ rule snpSift_annotate_snpEff_pindel:
         '''
 
 
-rule intersect_intervall_pindel:
-    input:
-        annotate_DB_2023=outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_DB_pindel.vcf", 
-        bed=ref+"/interval2023_replaced.bed"   
-    output:   
-        intersect_intervall=outfolder+"/{sample}/intersect_Intervall_snpEffpindel_annotated/{sample}_intersect_intervallsnpSift_pindel_annotate_DB_2023.vcf"
-    shell:  
-        "bedtools intersect -a {input.annotate_DB_2023} -b {input.bed} -wa -header > {output.intersect_intervall}" 
+#rule intersect_intervall_pindel:
+#    input:
+#        annotate_DB_2023=outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_DB_pindel.vcf", 
+#        bed=ref+"/interval2023_replaced.bed"   
+#    output:   
+#        intersect_intervall=outfolder+"/{sample}/intersect_Intervall_snpEffpindel_annotated/{sample}_intersect_intervallsnpSift_pindel_annotate_DB_2023.vcf"
+#    shell:  
+#        "bedtools intersect -a {input.annotate_DB_2023} -b {input.bed} -wa -header > {output.intersect_intervall}" 
 
 
 
@@ -359,14 +359,14 @@ rule snpSift_annotate_snpEff_freebayes_FilteringQuality:
 
 
 
-rule bedtools_intersect_interval_freebayes: 
-    input:
-        filtered_annotate_DB_2023=outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_DB.vcf", 
-        bed=ref+"/interval2023_replaced.bed"
-    output:   
-        intersect_intervall=outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_annotated/{sample}_intersect_intervallsnpSift_freebayes_annotate_DB_2023.vcf"
-    shell:  
-        "bedtools intersect -a {input.filtered_annotate_DB_2023} -b {input.bed} -wa -header > {output.intersect_intervall}" 
+#rule bedtools_intersect_interval_freebayes: 
+#    input:
+#        filtered_annotate_DB_2023=outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_DB.vcf", 
+#        bed=ref+"/interval2023_replaced.bed"
+#    output:   
+#        intersect_intervall=outfolder+"/{sample}/intersect_Intervall_snpEffFreeBayes_annotated/{sample}_intersect_intervallsnpSift_freebayes_annotate_DB_2023.vcf"
+#    shell:  
+#        "bedtools intersect -a {input.filtered_annotate_DB_2023} -b {input.bed} -wa -header > {output.intersect_intervall}" 
 
 
 

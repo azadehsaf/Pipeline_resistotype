@@ -2,7 +2,7 @@ import pandas as pd
 from snakemake.utils import validate
 from datetime import date
 
-configfile : "config_Run_100.yaml"
+configfile : "config_Run_103_reseq_biz.yaml"
 today = date.today()
 refName="AL123456.3"
 datain=config["datas"]
@@ -256,8 +256,8 @@ rule Coverage:
     output:
         coverageGenesout=outfolder+"/{sample}/coverage/{sample}_coverageResistGenes" 
     run:
-        shell("bedtools coverage -split -a {input.bed} -b {input.bam} |sed '1ichrom\tstart\tend\tgene\tDepthOfRedas\tBreadthCov\tBreadthNeeded\tBreadthFraction'> {output}") #  -g {input.fa}
-
+        shell("bedtools coverage -sorted -split -a {input.bed} -b {input.bam} |sed '1ichrom\tstart\tend\tgene\tDepthOfRedas\tBreadthCov\tBreadthNeeded\tBreadthFraction'> {output}") #  -g {input.fa}
+        
 
 #selecting the genes non-covered 
 rule Select_Coverage:
@@ -618,6 +618,8 @@ rule cocatenate_and_select_data_set:
         cat {input.output_join_bed_selected_cols_sorted_not_rrs_rrl} {input.selected_cols_join_POS_rrs_rrl}  > {output.cocatenate_not_rrs_rrl_selected_cols_join_POS_rrs_rrl}
         grep -v -P '[-|\*]\d{{4,5}}' {output.cocatenate_not_rrs_rrl_selected_cols_join_POS_rrs_rrl} | sort -n -k1,1 > {output.select_line_join_POS_rrs_rrl_sorted}
         '''
+
+#grep -v -P '[-|\*]\d{{4,5}}' {output.cocatenate_not_rrs_rrl_selected_cols_join_POS_rrs_rrl} | sort -n -k1,1 > {output.select_line_join_POS_rrs_rrl_sorted}
 
 #Corresponding mutation to an antibiotics related region  
 rule join_to_AntiBiotics:
