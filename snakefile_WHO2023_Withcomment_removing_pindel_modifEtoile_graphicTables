@@ -2,7 +2,7 @@ import pandas as pd
 from snakemake.utils import validate
 from datetime import date
 
-configfile : "config_Run_missed.yaml"
+configfile : "config_Run_HM_27.yaml"
 today = date.today()
 refName="AL123456.3"
 datain=config["datas"]
@@ -28,13 +28,11 @@ rule all:
         input_reformat_join_bed_db_WHO=expand(outfolder+"/{sample}/join_DB_file/{sample}_extracted_varscan_snpEff_join_notreformat_WHO2023.tab",sample=config["samples"]),
         outputfile_snpsift=expand(outfolder+"/{sample}/snpSift_extracted_snpEff/{sample}_extracted_varscan_snpEff.txt", sample=config["samples"]),
         outputfile_snpsift_WHO=expand(outfolder+"/{sample}/snpSift_extracted_snpEff/{sample}_extracted_varscan_snpEff_WHO2023.txt", sample=config["samples"]),
-        
         final_table_without_repeat=expand(outfolder+"/{sample}/final_results_assembling_files/{sample}_finale_table_AntiBiotics_noRodundant.txt", sample=config["samples"]),
         join_bed_selected_cols_sans_header=expand(outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_temps_varscan_join_sans_header.txt", sample=config["samples"]),
         freebayes_join_bed_selected_cols_sans_header=expand(outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_temps_freebayes_join_sans_header.txt", sample=config["samples"]),
         output_join_bed_selected_cols=expand(outfolder+"/{sample}/join_DB_file/{sample}_join_DB.bed_selected_cols",  sample=config["samples"]),
         output_join_bed_selected_cols_WHO2023=expand(outfolder+"/{sample}/join_DB_file/{sample}_join_DB.bed_selected_cols_WHO2023",  sample=config["samples"]),
-        
         join_both_DB_varscan_NoDuplicat=expand(outfolder+"/{sample}/join_DB_file/{sample}_join_both_DB_Final_containingWHO_varscan_NoDuplicat.txt",  sample=config["samples"]),
         BeforeFiltering_annotate=expand(outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_DB_beforeFiltering.vcf",  sample=config["samples"]),
         output_vartype_DB_2023_bfFiltering=expand(outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_vartype_DB_beforeFiltering.vcf", sample=config["samples"]),
@@ -64,19 +62,30 @@ rule all:
         gene_join_lineage=expand(outfolder+"/{sample}/final_results_assembling_files/{sample}_temps_Tb_mutation_lineage.txt",  sample=config["samples"]),
         tbProfilerout_results=expand(outfolder+"/{sample}/tb_profiler_results_files/{sample}_tbprofiler_report.results.pdf", sample=config["samples"]),
         tbProfilerout_results_txt=expand(outfolder+"/{sample}/tb_profiler_results_files/results/{sample}_tbprofiler_report.results.txt", sample=config["samples"]),
+        mtbseq_stat=expand(outfolder+"/{sample}/mtbseq_results_files/Statistics/Mapping_and_Variant_Statistics.tab",sample=config["samples"]),
         mtbseq_called=expand(outfolder+"/{sample}/mtbseq_results_files/Called/{sample}.gatk_position_variants_cf2_cr2_fr2_ph4_outmode001.tab",sample=config["samples"]),
         mtbseq_called_classificatin=expand(outfolder+"/{sample}/mtbseq_results_files/Classification/Strain_Classification.tab",sample=config["samples"]),
+        mtbseq_called_stat=expand(outfolder+"/{sample}/mtbseq_results_files/Statistics/Mapping_and_Variant_Statistics.tab",sample=config["samples"]),
         mtbseq_called_mutations_region_name=expand(outfolder+"/{sample}/{sample}_called_mutation_name.tab",sample=config["samples"]),
         mtbseq_called_mutations_region_id=expand(outfolder+"/{sample}/{sample}_called_mutation_id.tab",sample=config["samples"]),
         mtbseq_called_mutations_report=expand(outfolder+"/{sample}/{sample}_MTBseq_final_report.tab",sample=config["samples"]),
         all_varscan_freebayes_temp=expand(outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_concat_varscan_freebayes_temp.txt", sample=config["samples"]),
         join_table_join_sorted_antiBiotics=expand(outfolder+"/{sample}/{sample}_join_table_dailyPipeline_Tbprofiler_MTBseq.csv",  sample=config["samples"]),
-        join_table_join_sorted_antiBiotics_notfiltered=expand(outfolder+"/{sample}/{sample}_join_table_dailyPipeline_Tbprofiler_MTBseq_NOTFiltered.csv",
-        final_lineage=expand(outfolder+"/{sample}/final_results_assembling_files/{sample}_Final_lineage.txt",  sample=config["samples"]), sample=config["samples"]),
+        join_table_join_sorted_antiBiotics_notfiltered=expand(outfolder+"/{sample}/{sample}_join_table_dailyPipeline_Tbprofiler_MTBseq_NOTFiltered.csv",  sample=config["samples"]),
+        final_lineage=expand(outfolder+"/{sample}/final_results_assembling_files/{sample}_Final_lineage.txt",  sample=config["samples"]), 
         tbprofiler_to_merge=expand(outfolder+"/{sample}/{sample}_tbprofiler_to_merge.txt",  sample=config["samples"]),
-        mtbseq_to_merge=expand(outfolder+"/{sample}/{sample}_mtbseq_to_merge.txt",  sample=config["samples"]),
+        mtbseq_to_merge=expand(outfolder+"/{sample}/{sample}_mtbseq_to_merge.txt", sample=config["samples"]),
         report_kraken2=expand(outfolder+"/{sample}/{sample}_kraken2_result_report.report",  sample=config["samples"]),
-        test=expand(outfolder+"/{sample}/mtbseq_results_files/test",  sample=config["samples"]),
+        all_three_table_file=expand(outfolder+"/{sample}/{sample}_table_1_2_3.tab", sample=config["samples"]),
+        table_1=expand(outfolder+"/{sample}/{sample}_table1.csv", sample=config["samples"]),
+        table_2=expand(outfolder+"/{sample}/{sample}_table2.csv", sample=config["samples"]),
+        table_3=expand(outfolder+"/{sample}/{sample}_table3.csv", sample=config["samples"]),
+        test=expand(outfolder+"/{sample}/mtbseq_results_files/test", sample=config["samples"]),
+       # coverage_moyenne=expand(outfolder+"/{sample}/coverage/{sample}_coverageResistGenes_mean",  sample=config["samples"]),
+        coverage_base=expand(outfolder+"/{sample}/coverage/{sample}_coverageResistGenes_base",  sample=config["samples"]),
+        coverage_qc=expand(outfolder+"/{sample}/coverage/{sample}_coverage_qc.txt",  sample=config["samples"]),
+        mapping_quality=expand(outfolder+"/{sample}/{sample}_mapping_QC.csv",  sample=config["samples"])
+
         # taxonomy_kraken2=expand(outfolder+"/{sample}/{sample}_kraken2_result_taxonomyIdentification.txt",sample=config["samples"]),
 
 
@@ -221,10 +230,12 @@ rule FreeBayes:
     output:
         vcfout=outfolder+"/{sample}/freebayes_variant_calling/{sample}_freeBayes.vcf", 
     shell:
-        "freebayes -f {input.fa} -t {input.bed} -m 30 -q 20 -Q 0 -S 0 -F 0.08 -n 3 --report-all-haplotype-alleles -b {input.bam}  > {output}"
+        "freebayes -f {input.fa} -t {input.bed} -b {input.bam} > {output}"
 
-#-m 30 -q 20 -Q 0 -S 0 -F 0.08 -n 3 c'est le param qui fonctionne avec gyrA et katG
-
+#-m 30 -q 20 -Q 0 -S 0 -F 0.08 -n 3 c'est le param qui fonctionne avec gyrA et katG 
+#-m --min-mapping-quality -q --min-base-quality -Q --mismatch-base-quality-threshold -S --genotype-variant-threshold  -F --min-alternate-fraction 
+#-n --use-best-n-alleles best N SNP alleles
+#
 #Bedtools coverage is used for the purpose of finding all genes that are not covered by sequencing
 rule Coverage:
     input:
@@ -232,20 +243,30 @@ rule Coverage:
         bed=ref+"/interval2023_chrom_replaced.bed",  
         fa=ref+"/AL123456.3.fa.fai" 
     output:
-        coverageGenesout=outfolder+"/{sample}/coverage/{sample}_coverageResistGenes" 
-    run:
-        shell("bedtools coverage  -sorted -split -a {input.bed} -b {input.bam} |sed '1ichrom\tstart\tend\tgene\tDepthOfRedas\tBreadthCov\tBreadthNeeded\tBreadthFraction'> {output}") #  -g {input.fa}
-        
+        coverageGenesout=outfolder+"/{sample}/coverage/{sample}_coverageResistGenes",
+        #coverageGenesout_mean=outfolder+"/{sample}/coverage/{sample}_coverageResistGenes_mean",
+        coverageGenesout_base=outfolder+"/{sample}/coverage/{sample}_coverageResistGenes_base" 
 
+    shell:
+        '''
+        bedtools coverage  -sorted -split -a {input.bed} -b {input.bam} |sed '1ichrom\tstart\tend\tgene\tDepthOfRedas\tBreadthCov\tBreadthNeeded\tBreadthFraction'> {output.coverageGenesout}
+        
+        bedtools coverage -a {input.bed} -b  {input.bam} -d > {output.coverageGenesout_base}
+        '''
+#bedtools coverage -a {input.bed} -b  {input.bam} -mean > {output.coverageGenesout_mean}
 #selecting the genes non-covered 
 rule Select_Coverage:
     input:
-        coverageGenesinput=outfolder+"/{sample}/coverage/{sample}_coverageResistGenes" 
+        coverageGenesinput=outfolder+"/{sample}/coverage/{sample}_coverageResistGenes",
+        coverageGenesout_base=outfolder+"/{sample}/coverage/{sample}_coverageResistGenes_base"
     output:
-        non_coveredGenes_out=outfolder+"/{sample}/coverage/{sample}_coverageResistGenes_selectedNonCovered.txt"
+        non_coveredGenes_out=outfolder+"/{sample}/coverage/{sample}_coverageResistGenes_selectedNonCovered.txt",
+        coverage_qc=outfolder+"/{sample}/coverage/{sample}_coverage_qc.txt"
     shell:
         '''
-        cat  {input.coverageGenesinput} |grep -v "1.0000000" > {output}
+        python scripts/coverage_computing_table.py {input.coverageGenesout_base} {output.coverage_qc} 
+        cat  {input.coverageGenesinput} |grep -v "1.0000000" > {output.non_coveredGenes_out}
+
         ''' 
 
 
@@ -440,18 +461,20 @@ rule snpSift_extract_fields_SnpEff_freebayes_DB:
         """
         cat {input.input_intersect_interval} | ./scripts/vcfEffOnePerLine.pl | java -Xmx12g -jar snpEff/SnpSift.jar extractFields - POS REF ALT GEN[*].DP GEN[*].RO GEN[*].AO \"ANN[*].GENEID\" \"ANN[*].GENE\" \"ANN[*].HGVS_P\" \"ANN[*].HGVS_C\" \"P_INTER\" \"W_INTER\"  > {output.extractedField_snpEffFreebayes_DB}
         cat {input.input_vartype_DB_2023} | ./scripts/vcfEffOnePerLine.pl | java -Xmx12g -jar snpEff/SnpSift.jar extractFields - POS REF ALT VARTYPE EVENT \"P_INTER\" \"W_INTER\"  > {output.extractedField_varType_DB}
-        #cat  {output.extractedField_snpEffFreebayes_DB} | grep "del\|ins\|dup" > {output.all_DB_reformated}grep "DEL\|INS"
-        cat  {output.extractedField_snpEffFreebayes_DB}  | awk -F'\t' 'BEGIN{{ print "POS\tvarType\tGEN[*].DP\tGEN[*].RO\tGEN[*].AO\tANN[*].GENEID\tANN[*].GENE\tANN[*].HGVS_P\tANN[*].HGVS_C" }}; {{if ($10 ~ /del/){{ print $1"\tDEL\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }} else {{if (($10 ~ /ins/) || ($10 ~ /dup/)) {{print $1"\tINS\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }}}}}}' > {output.all_DB_reformated}
-        cat {output.extractedField_varType_DB} |awk -F'\t' 'BEGIN{{ print "POS\tREF\tALT\tvarType\tP_INTER\tW_INTER"}};{{if (($4 ~ /DEL/)|| ($4 ~ /INS/))  {{print $1"\t"$2"\t"$3"\t"$4"\t"$6"\t"$7 }}}}'   > {output.vartype_DB_reformated}
+
+        ./scripts/script_for_merging_database_SNP_InDel.sh {output.extractedField_snpEffFreebayes_DB} {output.extractedField_varType_DB} {output.all_DB_reformated} {output.vartype_DB_reformated} {output.merge_db}
+
+        #cat  {output.extractedField_snpEffFreebayes_DB}  | awk -F'\t' 'BEGIN{{ print "POS\tvarType\tGEN[*].DP\tGEN[*].RO\tGEN[*].AO\tANN[*].GENEID\tANN[*].GENE\tANN[*].HGVS_P\tANN[*].HGVS_C" }}; {{if ($10 ~ /del/){{ print $1"\tDEL\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }} else {{if (($10 ~ /ins/) || ($10 ~ /dup/)) {{print $1"\tINS\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }}}}}}' > {output.all_DB_reformated}
+        #cat {output.extractedField_varType_DB} |awk -F'\t' 'BEGIN{{ print "POS\tREF\tALT\tvarType\tP_INTER\tW_INTER"}};{{if (($4 ~ /DEL/)|| ($4 ~ /INS/))  {{print $1"\t"$2"\t"$3"\t"$4"\t"$6"\t"$7 }}}}'   > {output.vartype_DB_reformated}
          
-        python scripts/join_bed_vcf.py  {output.vartype_DB_reformated} {output.all_DB_reformated} {output.merge_db}
-        len_merge=`cat {output.merge_db} |wc -l`
-        if [ "$len_merge" -gt "1" ];
-        then
-            sed  -i '/del/d' {output.extractedField_snpEffFreebayes_DB} 
-            sed  -i '/ins/d' {output.extractedField_snpEffFreebayes_DB} 
-            cat {output.merge_db}| sed 1d | awk -F'\t'  '{{print $1"\t"$2"\t"$3"\t"$7"\t"$8"\t"$9"\t"$10"\t"$11"\t"$12"\t"$13"\t"$5"\t"$6}}'  >> {output.extractedField_snpEffFreebayes_DB}
-        fi
+        #python scripts/join_bed_vcf.py  {output.vartype_DB_reformated} {output.all_DB_reformated} {output.merge_db}
+        #len_merge=`cat {output.merge_db} |wc -l`
+        #if [ "$len_merge" -gt "1" ];
+        #then
+        #    sed  -i '/del/d' {output.extractedField_snpEffFreebayes_DB} 
+        #    sed  -i '/ins/d' {output.extractedField_snpEffFreebayes_DB} 
+        #    cat {output.merge_db}| sed 1d | awk -F'\t'  '{{print $1"\t"$2"\t"$3"\t"$7"\t"$8"\t"$9"\t"$10"\t"$11"\t"$12"\t"$13"\t"$5"\t"$6}}'  >> {output.extractedField_snpEffFreebayes_DB}
+        #fi
       """
 
 
@@ -474,6 +497,8 @@ rule snpSift_extract_fields_SnpEff_freebayes_WHO:
         cat {input.input_annotate_WHO_2023} | ./scripts/vcfEffOnePerLine.pl | java -Xmx12g -jar snpEff/SnpSift.jar extractFields - POS REF ALT GEN[*].DP GEN[*].RO GEN[*].AO \"ANN[*].GENEID\" \"ANN[*].GENE\" \"ANN[*].HGVS_P\" \"ANN[*].HGVS_C\" EVENT DRUG \"N_WHOALL_R\"  \"N_WHOALL_S\" \"WHOALL_GRADING\"  > {output.extractedField_snpEffFreebayes_WHO2023}
         cat {input.input_vartype_DB_WHO2023} | ./scripts/vcfEffOnePerLine.pl | java -Xmx12g -jar snpEff/SnpSift.jar extractFields - POS REF ALT  VARTYPE  EVENT DRUG \"N_WHOALL_R\"  \"N_WHOALL_S\" \"WHOALL_GRADING\"  > {output.extractedField_varType_WHO2023}
         
+        #./scripts/script_for_merging_database_SNP_InDel_usingWHO.sh {output.extractedField_snpEffFreebayes_WHO2023} {output.extractedField_varType_WHO2023} {output.all_who_reformated} {output.vartype_who_reformated} {output.merge_who}
+
         cat  {output.extractedField_snpEffFreebayes_WHO2023}  | awk -F'\t' 'BEGIN{{ print "POS\tvarType\tGEN[*].DP\tGEN[*].RO\tGEN[*].AO\tANN[*].GENEID\tANN[*].GENE\tANN[*].HGVS_P\tANN[*].HGVS_C\tEVENT" }}; {{ if ($10 ~ /del/) {{ print $1"\tDEL\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10"\t"$11 }} else {{ if (($10 ~ /ins/) || ($10 ~ /dup/)) {{print $1"\tINS\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10"\t"$11 }}}}}}'  > {output.all_who_reformated}
         cat {output.extractedField_varType_WHO2023}  | awk -F'\t' 'BEGIN{{ print "POS\tREF\tALT\tvarType\tEVENT\tDRUG\tN_WHOALL_R\tN_WHOALL_S\tWHOALL_GRADING" }}; {{if (($4 ~ /DEL/)|| ($4 ~ /INS/)) {{print $1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9}}}}' > {output.vartype_who_reformated}
 
@@ -566,7 +591,7 @@ rule cocatenate_and_select_data_set:
     shell:
         '''
         cat {input.output_join_bed_selected_cols_sorted_not_rrs_rrl} {input.selected_cols_join_POS_rrs_rrl}  > {output.cocatenate_not_rrs_rrl_selected_cols_join_POS_rrs_rrl}
-        grep -v -P '[-|\*]\d{{4,5}}' {output.cocatenate_not_rrs_rrl_selected_cols_join_POS_rrs_rrl} | sort -n -k1,1 > {output.select_line_join_POS_rrs_rrl_sorted}
+        grep -v -P 'c\.[A-Z]\*|c\..*[-]\d{{4,5}}' {output.cocatenate_not_rrs_rrl_selected_cols_join_POS_rrs_rrl} | sort -n -k1,1 > {output.select_line_join_POS_rrs_rrl_sorted}
         '''
 
 #Corresponding mutation to an antibiotics related region  
@@ -643,6 +668,8 @@ rule running_MTbseq:
         samp_r2_gz=outfolder+"/{sample}/mtbseq_results_files/{sample}_R2.fastq.gz",
         mtbseq_called=outfolder+"/{sample}/mtbseq_results_files/Called/{sample}.gatk_position_variants_cf2_cr2_fr2_ph4_outmode001.tab",
         mtbseq_called_classificatin=outfolder+"/{sample}/mtbseq_results_files/Classification/Strain_Classification.tab",
+        mtbseq_called_stat=outfolder+"/{sample}/mtbseq_results_files/Statistics/Mapping_and_Variant_Statistics.tab",
+
         test=outfolder+"/{sample}/mtbseq_results_files/test"
     threads: 10
     conda : "mtbseq-env.yaml"
@@ -675,7 +702,7 @@ rule join_res_MTbseq:
 #All merging, the rull produces final merge file
 rule result_firstePipeline_tbprofiler:
     input:
-        tbProfilerout_results=outfolder+"/{sample}/tb_profiler_results_files/results/{sample}_tbprofiler_report.results.txt", 
+        tbProfilerout_results=outfolder+"/{sample}/tb_profiler_results_files/results/{sample}_tbprofiler_report.results.txt",
         big_table_join_sorted_antiBiotics=outfolder+"/{sample}/final_results_assembling_files/{sample}_finale_table_AntiBiotics_noRodundant.txt",
         final_lineage=outfolder+"/{sample}/final_results_assembling_files/{sample}_Final_lineage.txt",
         mtbseq_lin=outfolder+"/{sample}/{sample}_MTBseq_final_report.tab",
@@ -690,6 +717,7 @@ rule result_firstePipeline_tbprofiler:
         all_merge=outfolder+"/{sample}/{sample}_join_table_dailyPipeline_Tbprofiler_MTBseq.csv"
     shell:
         '''
+
         cat {input.tbProfilerout_results}  | sed -n  '/^Resistance variants/,/Coverage report/p' | grep -v 'report'  | grep -v '^-' | grep -v '^$' | sort -n -k 1,1 | sed 1d | tr ' ' '_'  > {output.tbprofiler_to_merge}
         cat {input.mtbseq_call} |  sed 's/#//' |awk -F'\t' '{{print $1"\t"$3"\t"$4"\t"$5"\t"$9"\t"$10"\t"$11"\t"$12"\t"$13"\t"$14"\t"$15"\t"$16"\t"$17}}' > {output.mtbseq_to_merge}
         python scripts/script_python_merge.py  {input.big_table_join_sorted_antiBiotics} {output.tbprofiler_to_merge}  {output.mtbseq_to_merge} {output.all_merge_notfiltered}
@@ -709,6 +737,45 @@ rule result_firstePipeline_tbprofiler:
         echo "\n\nMTBseq lineage:\n" >> {output.all_merge}
         cat  {input.mtbseq_lin} >> {output.all_merge}
         '''
+
+
+rule result_all_graphic_table_file:
+    input:
+        all_merge=outfolder+"/{sample}/{sample}_join_table_dailyPipeline_Tbprofiler_MTBseq.csv",
+        all_merge_notfiltered=outfolder+"/{sample}/{sample}_join_table_dailyPipeline_Tbprofiler_MTBseq_NOTFiltered.csv",
+        mtbseq_stat=outfolder+"/{sample}/mtbseq_results_files/Statistics/Mapping_and_Variant_Statistics.tab",
+        mtbseq_lin=outfolder+"/{sample}/{sample}_MTBseq_final_report.tab",
+        tbProfilerout_results=outfolder+"/{sample}/tb_profiler_results_files/results/{sample}_tbprofiler_report.results.txt", 
+        coverage_qc=outfolder+"/{sample}/coverage/{sample}_coverage_qc.txt"
+    output:
+        table1=outfolder+"/{sample}/{sample}_table1.csv",
+        table2=outfolder+"/{sample}/{sample}_table2.csv",
+        table3=outfolder+"/{sample}/{sample}_table3.csv",
+        all_table=outfolder+"/{sample}/{sample}_table_1_2_3.tab",
+        mapping_quality=outfolder+"/{sample}/{sample}_mapping_QC.csv"
+    shell:
+        '''
+        python scripts/script_reformating_after_merge.py  {input.all_merge_notfiltered} {output.table1} {output.table2} {output.table3}
+        tbprof_lineage=`cat {input.tbProfilerout_results} | sed 's/lineage//'| sed -n '/^Lineage report/,/Resistance report/p' | grep -v 'report'  | grep -v '^-' | grep -v '^$' | grep -v 'Family' |sort -n -k 1,1 | sed 1d | tr ' ' '_'|tail -1| cut -f1,3`
+        mtbseq_lineage=`cat {input.mtbseq_lin} | cut -f8,9 | tr -d "'" | sed 1d`
+        glimsName=$(basename ${input.all_merge})
+        dossier=`echo $glimsName | cut -d'_' -f1`
+        espece=`cat {input.all_merge} | grep -A2 'Kraken2' | tail -1 | cut -f2 |sed 's/^ *//'` 
+        echo "N° Dossier:\t$dossier\n" >> {output.all_table}
+        echo "Espèce:\t$espece \n" >> {output.all_table}
+        echo "MTBseq lignée:\t$mtbseq_lineage \n" >> {output.all_table}
         
-        #echo "\n\nKraken2 taxonomy : \n" >> {output.all_merge}
-        #cat {input.taxo} >> {output.all_merge}
+        echo "\n\n">>{output.all_table}
+        cat {output.table1} >>  {output.all_table}
+        echo "\n\n">>{output.all_table}
+        cat {output.table2} >>  {output.all_table}
+        echo "Contrôles de qualité\n" > {output.mapping_quality}|
+        echo "\n" >> {output.mapping_quality}
+        pc_mapped_read=`cat {input.mtbseq_stat} | cut -f7 | tr -d "'" | sed 1d`
+        echo "Pourcentage de reads mappées: $pc_mapped_read \n" >> {output.mapping_quality}
+        pc_mediane_coverage_chrom=`cat {input.mtbseq_stat} | cut -f14 | tr -d "'" | sed 1d`
+        echo "Profondeur médiane sur le génome: $pc_mediane_coverage_chrom \n" >> {output.mapping_quality}
+        echo "\n\n" >> {output.mapping_quality}
+        cat {input.coverage_qc} | cut -f1,4,5 >> {output.mapping_quality}
+
+        '''

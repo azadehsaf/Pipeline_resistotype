@@ -2,7 +2,7 @@ import pandas as pd
 from snakemake.utils import validate
 from datetime import date
 
-configfile : "config_Run_missed.yaml"
+configfile : "config_Run_EQCinstand.yaml"
 today = date.today()
 refName="AL123456.3"
 datain=config["datas"]
@@ -28,13 +28,11 @@ rule all:
         input_reformat_join_bed_db_WHO=expand(outfolder+"/{sample}/join_DB_file/{sample}_extracted_varscan_snpEff_join_notreformat_WHO2023.tab",sample=config["samples"]),
         outputfile_snpsift=expand(outfolder+"/{sample}/snpSift_extracted_snpEff/{sample}_extracted_varscan_snpEff.txt", sample=config["samples"]),
         outputfile_snpsift_WHO=expand(outfolder+"/{sample}/snpSift_extracted_snpEff/{sample}_extracted_varscan_snpEff_WHO2023.txt", sample=config["samples"]),
-        
         final_table_without_repeat=expand(outfolder+"/{sample}/final_results_assembling_files/{sample}_finale_table_AntiBiotics_noRodundant.txt", sample=config["samples"]),
         join_bed_selected_cols_sans_header=expand(outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_temps_varscan_join_sans_header.txt", sample=config["samples"]),
         freebayes_join_bed_selected_cols_sans_header=expand(outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_temps_freebayes_join_sans_header.txt", sample=config["samples"]),
         output_join_bed_selected_cols=expand(outfolder+"/{sample}/join_DB_file/{sample}_join_DB.bed_selected_cols",  sample=config["samples"]),
         output_join_bed_selected_cols_WHO2023=expand(outfolder+"/{sample}/join_DB_file/{sample}_join_DB.bed_selected_cols_WHO2023",  sample=config["samples"]),
-        
         join_both_DB_varscan_NoDuplicat=expand(outfolder+"/{sample}/join_DB_file/{sample}_join_both_DB_Final_containingWHO_varscan_NoDuplicat.txt",  sample=config["samples"]),
         BeforeFiltering_annotate=expand(outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_annotate_DB_beforeFiltering.vcf",  sample=config["samples"]),
         output_vartype_DB_2023_bfFiltering=expand(outfolder+"/{sample}/snpSift_DB_file/{sample}_snpSift_vartype_DB_beforeFiltering.vcf", sample=config["samples"]),
@@ -76,19 +74,19 @@ rule all:
         tbprofiler_to_merge=expand(outfolder+"/{sample}/{sample}_tbprofiler_to_merge.txt",  sample=config["samples"]),
         mtbseq_to_merge=expand(outfolder+"/{sample}/{sample}_mtbseq_to_merge.txt",  sample=config["samples"]),
         report_kraken2=expand(outfolder+"/{sample}/{sample}_kraken2_result_report.report",  sample=config["samples"]),
+        #taxonomy_kraken2=expand(outfolder+"/{sample}/{sample}_kraken2_result_taxonomyIdentification.txt",sample=config["samples"]),
         test=expand(outfolder+"/{sample}/mtbseq_results_files/test",  sample=config["samples"]),
-        # taxonomy_kraken2=expand(outfolder+"/{sample}/{sample}_kraken2_result_taxonomyIdentification.txt",sample=config["samples"]),
 
 
 #To decompress .DSRC files
-rule decom_DSRC_sample:
-    input:
-         datain+"/{sample}_{mate}.fastq.dsrc"    
-    output:
-         datain+"/{sample}_{mate}.fastq"   
-    threads:4
-    shell:
-        "dsrc d -t{threads} -s {input} > {output}"
+#rule decom_DSRC_sample:
+#    input:
+#         datain+"/{sample}_{mate}.fastq.dsrc"    
+#    output:
+#         datain+"/{sample}_{mate}.fastq"   
+#    threads:4
+#    shell:
+#        "dsrc d -t{threads} -s {input} > {output}"
 
 #To decompress .gz files
 rule unzip_sample:
@@ -137,7 +135,7 @@ rule quality_control_R2:
     shell:
         "~/tools/FastQC/fastqc -o {params} {input}" 
 
-
+#Taxonomy kraken2
 rule kraken2_taxonomy:
     input:
         kraken_database="/home/azadeh/database/kraken2",
@@ -145,14 +143,13 @@ rule kraken2_taxonomy:
         fastq2=datain+"/{sample}_R2.fastq"
     output:
         report=outfolder+"/{sample}/{sample}_kraken2_result_report.report"
+        
     threads:5
     shell:
-        """
-        kraken2 --threads {threads} --db {input.kraken_database} --minimum-base-quality 30 --paired --report {output.report} {input.fastq1} {input.fastq2}
-        """
-#| sort -n -r -k1 
-#cat {output.report} |cut -f1,4,6 > {output.taxo}
-
+        '''
+        kraken2 --threads {threads} --db {input.kraken_database} --paired --report {output} {input.fastq1} {input.fastq2}
+        
+        '''
 
 #Spoligotyping forward reads R1
 rule call_spolpred_D:
@@ -185,7 +182,7 @@ rule concatenate_spoligoType_D_R:
 
 
 #Mapping both forward and reverse reads using BWA mem  ( H37RV reference genome, GCF_000195955.2_ASM19595v2_genomic.fa )
-rule bwa_map: #log ne fonctionne pas
+rule bwa_map: # log ne fonctionne pas
     input:
         fa=ref+"/GCF_000195955.2_ASM19595v2_genomic.fa",
         fastq1=datain+"/{sample}_R1.fastq",
@@ -474,16 +471,16 @@ rule snpSift_extract_fields_SnpEff_freebayes_WHO:
         cat {input.input_annotate_WHO_2023} | ./scripts/vcfEffOnePerLine.pl | java -Xmx12g -jar snpEff/SnpSift.jar extractFields - POS REF ALT GEN[*].DP GEN[*].RO GEN[*].AO \"ANN[*].GENEID\" \"ANN[*].GENE\" \"ANN[*].HGVS_P\" \"ANN[*].HGVS_C\" EVENT DRUG \"N_WHOALL_R\"  \"N_WHOALL_S\" \"WHOALL_GRADING\"  > {output.extractedField_snpEffFreebayes_WHO2023}
         cat {input.input_vartype_DB_WHO2023} | ./scripts/vcfEffOnePerLine.pl | java -Xmx12g -jar snpEff/SnpSift.jar extractFields - POS REF ALT  VARTYPE  EVENT DRUG \"N_WHOALL_R\"  \"N_WHOALL_S\" \"WHOALL_GRADING\"  > {output.extractedField_varType_WHO2023}
         
-        cat  {output.extractedField_snpEffFreebayes_WHO2023}  | awk -F'\t' 'BEGIN{{ print "POS\tvarType\tGEN[*].DP\tGEN[*].RO\tGEN[*].AO\tANN[*].GENEID\tANN[*].GENE\tANN[*].HGVS_P\tANN[*].HGVS_C\tEVENT" }}; {{ if ($10 ~ /del/) {{ print $1"\tDEL\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10"\t"$11 }} else {{ if (($10 ~ /ins/) || ($10 ~ /dup/)) {{print $1"\tINS\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10"\t"$11 }}}}}}'  > {output.all_who_reformated}
-        cat {output.extractedField_varType_WHO2023}  | awk -F'\t' 'BEGIN{{ print "POS\tREF\tALT\tvarType\tEVENT\tDRUG\tN_WHOALL_R\tN_WHOALL_S\tWHOALL_GRADING" }}; {{if (($4 ~ /DEL/)|| ($4 ~ /INS/)) {{print $1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9}}}}' > {output.vartype_who_reformated}
+        cat  {output.extractedField_snpEffFreebayes_WHO2023}  | awk -F'\t' 'BEGIN{{ print "POS\tvarType\tGEN[*].DP\tGEN[*].RO\tGEN[*].AO\tANN[*].GENEID\tANN[*].GENE\tANN[*].HGVS_P\tANN[*].HGVS_C" }}; {{ if ($10 ~ /del/) {{ print $1"\tDEL\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }} else {{ if (($10 ~ /ins/) || ($10 ~ /dup/)) {{print $1"\tINS\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }}}}}}'  > {output.all_who_reformated}
+        cat {output.extractedField_varType_WHO2023}  | awk -F'\t' 'BEGIN{{ print "POS\tREF\tALT\tvarType\tDRUG\tN_WHOALL_R\tN_WHOALL_S\tWHOALL_GRADING" }}; {{if (($4 ~ /DEL/)|| ($4 ~ /INS/)) {{print $1"\t"$2"\t"$3"\t"$4"\t"$6"\t"$7"\t"$8"\t"$9}}}}' > {output.vartype_who_reformated}
 
-        python scripts/join_bed_vcf_vartype_all_WHO.py  {output.vartype_who_reformated} {output.all_who_reformated} {output.merge_who}
+        python scripts/join_bed_vcf.py  {output.vartype_who_reformated} {output.all_who_reformated} {output.merge_who}
         len_merge=`cat {output.merge_who} |wc -l `
         if [ "$len_merge" -gt "1" ];
         then    
             sed  -i '/del/d' {output.extractedField_snpEffFreebayes_WHO2023} 
             sed  -i '/ins/d' {output.extractedField_snpEffFreebayes_WHO2023} 
-           cat {output.merge_who}| sed 1d |  awk -F'\t' '{{print $1"\t"$2"\t"$3"\t"$10"\t"$11"\t"$12"\t"$13"\t"$14"\t"$15"\t"$16"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9}}' >> {output.extractedField_snpEffFreebayes_WHO2023}
+           cat {output.merge_who}| sed 1d | awk -F'\t'  '{{print $1"\t"$2"\t"$3"\t"$9"\t"$10"\t"$11"\t"$12"\t"$13"\t"$14"\t"$15"\t_\t"$5"\t"$6"\t"$7"\t"$8}}'  >> {output.extractedField_snpEffFreebayes_WHO2023}
         fi
         '''
  
@@ -543,7 +540,7 @@ rule join_rrs_rrl_pos:
            
 
 #Selecting useful columns after joining rrs and rrl with their genomic position
-rule choose_cols_join_rrs_rrl_pos: 
+rule choose_cols_join_rrs_rrl_pos: # A revoir pour RRL
     input:
         join_POS_rrs_rrl=outfolder+"/{sample}/join_two_Vcf_rrl_rrs/{sample}_join_POS_rrs_rrl.txt"
     output:
@@ -579,7 +576,7 @@ rule join_to_AntiBiotics:
         
     shell:
         '''
-        python scripts/join_bed_vcf_ATB_gene.py {input.all_cols_join_POS_rrs_rrl_sorted} {input.antibiotics_data} {output.big_table_join_antiBiotics}
+        python scripts/join_bed_vcf.py {input.all_cols_join_POS_rrs_rrl_sorted} {input.antibiotics_data} {output.big_table_join_antiBiotics}
         '''
 
 #Generating the table of antibiotics and corresponding mutations    
@@ -651,7 +648,6 @@ rule running_MTbseq:
         echo 'test' > {output.test}
          ./scripts/script_running_mtbseq.sh {input.r1} {input.r2}  {output.samp_r1_gz} {output.samp_r2_gz} {output.mtbseq_dir} {threads}
         '''
-
 #selecting a subset of variants found by MTBseq, for downstream merging with other results
 rule join_res_MTbseq:
     input:
@@ -682,7 +678,8 @@ rule result_firstePipeline_tbprofiler:
         mtbseq_call=outfolder+"/{sample}/{sample}_called_mutation_name.tab",
         spoligo=outfolder+"/{sample}/spolpred_spoligoTyping/{sample}_spoligoType_DRall",
         non_coveredGenes_out=outfolder+"/{sample}/coverage/{sample}_coverageResistGenes_selectedNonCovered.txt",
-        krakenreport=outfolder+"/{sample}/{sample}_kraken2_result_report.report"
+        Krakenreport=outfolder+"/{sample}/{sample}_kraken2_result_report.report"       
+
     output:
         tbprofiler_to_merge=outfolder+"/{sample}/{sample}_tbprofiler_to_merge.txt",
         mtbseq_to_merge=outfolder+"/{sample}/{sample}_mtbseq_to_merge.txt",
@@ -697,7 +694,7 @@ rule result_firstePipeline_tbprofiler:
         echo "\n\nNon covered genes : \n" >> {output.all_merge}
         cat {input.non_coveredGenes_out} >> {output.all_merge}
         echo "\n\nKraken2 taxonomy : \n" >> {output.all_merge}
-        cat {input.krakenreport} | cut -f1,4,6 | awk -F'\t' '($2=="S"|| $2=="S1"){{print $1"\t"$3}}'| sort -n -r -k1 | sed -n 1,2p>> {output.all_merge}
+        cat {input.Krakenreport} | cut -f1,4,6  | awk -F'\t' '($2=="S"|| $2=="S1"){{print $1"\t"$3}}'| sort -n -r -k1 | sed -n 1,2p>> {output.all_merge}
         echo "\n\nSpoligotyping :\n" >> {output.all_merge}
         echo "(Spolpred): \n" >> {output.all_merge}
         cat {input.spoligo}| cut -d'/' -f6 |cut -f1,2 | sed 's/.fastq//g' >>  {output.all_merge}
@@ -710,5 +707,7 @@ rule result_firstePipeline_tbprofiler:
         cat  {input.mtbseq_lin} >> {output.all_merge}
         '''
         
-        #echo "\n\nKraken2 taxonomy : \n" >> {output.all_merge}
-        #cat {input.taxo} >> {output.all_merge}
+
+#
+#echo "\n\nKraken2 taxonomy : \n" >> {output.all_merge}
+       # cat {input.Krakenreport} | cut -f1,4,6 | awk -F'\t' '($2=="S"|| $2=="S1"){{print $1"\t"$3}}' | sort -n -r -k1  | head -2 >> {output.all_merge}

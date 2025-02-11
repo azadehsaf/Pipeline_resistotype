@@ -2,7 +2,7 @@ import pandas as pd
 from snakemake.utils import validate
 from datetime import date
 
-configfile : "config_Run_missed.yaml"
+configfile : "config_Run_HM_26.yaml"
 today = date.today()
 refName="AL123456.3"
 datain=config["datas"]
@@ -440,18 +440,20 @@ rule snpSift_extract_fields_SnpEff_freebayes_DB:
         """
         cat {input.input_intersect_interval} | ./scripts/vcfEffOnePerLine.pl | java -Xmx12g -jar snpEff/SnpSift.jar extractFields - POS REF ALT GEN[*].DP GEN[*].RO GEN[*].AO \"ANN[*].GENEID\" \"ANN[*].GENE\" \"ANN[*].HGVS_P\" \"ANN[*].HGVS_C\" \"P_INTER\" \"W_INTER\"  > {output.extractedField_snpEffFreebayes_DB}
         cat {input.input_vartype_DB_2023} | ./scripts/vcfEffOnePerLine.pl | java -Xmx12g -jar snpEff/SnpSift.jar extractFields - POS REF ALT VARTYPE EVENT \"P_INTER\" \"W_INTER\"  > {output.extractedField_varType_DB}
-        #cat  {output.extractedField_snpEffFreebayes_DB} | grep "del\|ins\|dup" > {output.all_DB_reformated}grep "DEL\|INS"
-        cat  {output.extractedField_snpEffFreebayes_DB}  | awk -F'\t' 'BEGIN{{ print "POS\tvarType\tGEN[*].DP\tGEN[*].RO\tGEN[*].AO\tANN[*].GENEID\tANN[*].GENE\tANN[*].HGVS_P\tANN[*].HGVS_C" }}; {{if ($10 ~ /del/){{ print $1"\tDEL\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }} else {{if (($10 ~ /ins/) || ($10 ~ /dup/)) {{print $1"\tINS\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }}}}}}' > {output.all_DB_reformated}
-        cat {output.extractedField_varType_DB} |awk -F'\t' 'BEGIN{{ print "POS\tREF\tALT\tvarType\tP_INTER\tW_INTER"}};{{if (($4 ~ /DEL/)|| ($4 ~ /INS/))  {{print $1"\t"$2"\t"$3"\t"$4"\t"$6"\t"$7 }}}}'   > {output.vartype_DB_reformated}
+
+        ./scripts/script_for_merging_database_SNP_InDel.sh {output.extractedField_snpEffFreebayes_DB} {output.extractedField_varType_DB} {output.all_DB_reformated} {output.vartype_DB_reformated} {output.merge_db}
+
+        #cat  {output.extractedField_snpEffFreebayes_DB}  | awk -F'\t' 'BEGIN{{ print "POS\tvarType\tGEN[*].DP\tGEN[*].RO\tGEN[*].AO\tANN[*].GENEID\tANN[*].GENE\tANN[*].HGVS_P\tANN[*].HGVS_C" }}; {{if ($10 ~ /del/){{ print $1"\tDEL\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }} else {{if (($10 ~ /ins/) || ($10 ~ /dup/)) {{print $1"\tINS\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10 }}}}}}' > {output.all_DB_reformated}
+        #cat {output.extractedField_varType_DB} |awk -F'\t' 'BEGIN{{ print "POS\tREF\tALT\tvarType\tP_INTER\tW_INTER"}};{{if (($4 ~ /DEL/)|| ($4 ~ /INS/))  {{print $1"\t"$2"\t"$3"\t"$4"\t"$6"\t"$7 }}}}'   > {output.vartype_DB_reformated}
          
-        python scripts/join_bed_vcf.py  {output.vartype_DB_reformated} {output.all_DB_reformated} {output.merge_db}
-        len_merge=`cat {output.merge_db} |wc -l`
-        if [ "$len_merge" -gt "1" ];
-        then
-            sed  -i '/del/d' {output.extractedField_snpEffFreebayes_DB} 
-            sed  -i '/ins/d' {output.extractedField_snpEffFreebayes_DB} 
-            cat {output.merge_db}| sed 1d | awk -F'\t'  '{{print $1"\t"$2"\t"$3"\t"$7"\t"$8"\t"$9"\t"$10"\t"$11"\t"$12"\t"$13"\t"$5"\t"$6}}'  >> {output.extractedField_snpEffFreebayes_DB}
-        fi
+        #python scripts/join_bed_vcf.py  {output.vartype_DB_reformated} {output.all_DB_reformated} {output.merge_db}
+        #len_merge=`cat {output.merge_db} |wc -l`
+        #if [ "$len_merge" -gt "1" ];
+        #then
+        #    sed  -i '/del/d' {output.extractedField_snpEffFreebayes_DB} 
+        #    sed  -i '/ins/d' {output.extractedField_snpEffFreebayes_DB} 
+        #    cat {output.merge_db}| sed 1d | awk -F'\t'  '{{print $1"\t"$2"\t"$3"\t"$7"\t"$8"\t"$9"\t"$10"\t"$11"\t"$12"\t"$13"\t"$5"\t"$6}}'  >> {output.extractedField_snpEffFreebayes_DB}
+        #fi
       """
 
 
@@ -474,6 +476,8 @@ rule snpSift_extract_fields_SnpEff_freebayes_WHO:
         cat {input.input_annotate_WHO_2023} | ./scripts/vcfEffOnePerLine.pl | java -Xmx12g -jar snpEff/SnpSift.jar extractFields - POS REF ALT GEN[*].DP GEN[*].RO GEN[*].AO \"ANN[*].GENEID\" \"ANN[*].GENE\" \"ANN[*].HGVS_P\" \"ANN[*].HGVS_C\" EVENT DRUG \"N_WHOALL_R\"  \"N_WHOALL_S\" \"WHOALL_GRADING\"  > {output.extractedField_snpEffFreebayes_WHO2023}
         cat {input.input_vartype_DB_WHO2023} | ./scripts/vcfEffOnePerLine.pl | java -Xmx12g -jar snpEff/SnpSift.jar extractFields - POS REF ALT  VARTYPE  EVENT DRUG \"N_WHOALL_R\"  \"N_WHOALL_S\" \"WHOALL_GRADING\"  > {output.extractedField_varType_WHO2023}
         
+        #./scripts/script_for_merging_database_SNP_InDel_usingWHO.sh {output.extractedField_snpEffFreebayes_WHO2023} {output.extractedField_varType_WHO2023} {output.all_who_reformated} {output.vartype_who_reformated} {output.merge_who}
+
         cat  {output.extractedField_snpEffFreebayes_WHO2023}  | awk -F'\t' 'BEGIN{{ print "POS\tvarType\tGEN[*].DP\tGEN[*].RO\tGEN[*].AO\tANN[*].GENEID\tANN[*].GENE\tANN[*].HGVS_P\tANN[*].HGVS_C\tEVENT" }}; {{ if ($10 ~ /del/) {{ print $1"\tDEL\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10"\t"$11 }} else {{ if (($10 ~ /ins/) || ($10 ~ /dup/)) {{print $1"\tINS\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10"\t"$11 }}}}}}'  > {output.all_who_reformated}
         cat {output.extractedField_varType_WHO2023}  | awk -F'\t' 'BEGIN{{ print "POS\tREF\tALT\tvarType\tEVENT\tDRUG\tN_WHOALL_R\tN_WHOALL_S\tWHOALL_GRADING" }}; {{if (($4 ~ /DEL/)|| ($4 ~ /INS/)) {{print $1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9}}}}' > {output.vartype_who_reformated}
 
@@ -566,7 +570,7 @@ rule cocatenate_and_select_data_set:
     shell:
         '''
         cat {input.output_join_bed_selected_cols_sorted_not_rrs_rrl} {input.selected_cols_join_POS_rrs_rrl}  > {output.cocatenate_not_rrs_rrl_selected_cols_join_POS_rrs_rrl}
-        grep -v -P '[-|\*]\d{{4,5}}' {output.cocatenate_not_rrs_rrl_selected_cols_join_POS_rrs_rrl} | sort -n -k1,1 > {output.select_line_join_POS_rrs_rrl_sorted}
+        grep -v -P '\*|[-]\d{{4,5}}' {output.cocatenate_not_rrs_rrl_selected_cols_join_POS_rrs_rrl} | sort -n -k1,1 > {output.select_line_join_POS_rrs_rrl_sorted}
         '''
 
 #Corresponding mutation to an antibiotics related region  
