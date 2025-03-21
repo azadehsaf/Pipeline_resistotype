@@ -2,7 +2,7 @@ import pandas as pd
 from snakemake.utils import validate
 from datetime import date
 
-configfile : "config_Run_HM_27.yaml"
+configfile : "config_Run_76.yaml"
 today = date.today()
 refName="AL123456.3"
 datain=config["datas"]
@@ -80,12 +80,16 @@ rule all:
         table_1=expand(outfolder+"/{sample}/{sample}_table1.csv", sample=config["samples"]),
         table_2=expand(outfolder+"/{sample}/{sample}_table2.csv", sample=config["samples"]),
         table_3=expand(outfolder+"/{sample}/{sample}_table3.csv", sample=config["samples"]),
+        table_excel=expand(outfolder+"/{sample}/{sample}.xlsx", sample=config["samples"]),
         test=expand(outfolder+"/{sample}/mtbseq_results_files/test", sample=config["samples"]),
        # coverage_moyenne=expand(outfolder+"/{sample}/coverage/{sample}_coverageResistGenes_mean",  sample=config["samples"]),
         coverage_base=expand(outfolder+"/{sample}/coverage/{sample}_coverageResistGenes_base",  sample=config["samples"]),
-        coverage_qc=expand(outfolder+"/{sample}/coverage/{sample}_coverage_qc.txt",  sample=config["samples"]),
-        mapping_quality=expand(outfolder+"/{sample}/{sample}_mapping_QC.csv",  sample=config["samples"])
-
+        coverage_qc=expand(outfolder+"/{sample}/{sample}_coverage_qc.tab",  sample=config["samples"]),
+        coverage_deletion=expand(outfolder+"/{sample}/{sample}_coverage_deletion.tab", sample=config["samples"]),
+        mapping_quality=expand(outfolder+"/{sample}/{sample}_mapping_QC.tab",  sample=config["samples"]),
+        delly_res_bcf=expand(outfolder+"/{sample}/delly_result/{sample}_delly.bcf", sample=config["samples"]),
+        delly_res_vcf=expand(outfolder+"/{sample}/delly_result/{sample}_delly.vcf", sample=config["samples"]),
+        mapping_quality_excel=expand(outfolder+"/{sample}/{sample}_mapping_QC.xlsx", sample=config["samples"])
         # taxonomy_kraken2=expand(outfolder+"/{sample}/{sample}_kraken2_result_taxonomyIdentification.txt",sample=config["samples"]),
 
 
@@ -220,6 +224,21 @@ rule samtools_sort:
         samtools index {output.bam} {output.bai}
         '''
 
+rule delly_rule:
+    input:
+        fa=ref+"/GCF_000195955.2_ASM19595v2_genomic.fa",
+        bam_sorted=outfolder+"/{sample}/sorted_reads/{sample}.sorted.bam"   
+    output:
+        delly_res_bcf=outfolder+"/{sample}/delly_result/{sample}_delly.bcf",
+        delly_res_vcf=outfolder+"/{sample}/delly_result/{sample}_delly.vcf"
+    shell:
+        '''
+            delly call -g {input.fa} {input.bam_sorted} -o {output.delly_res_bcf}
+            bcftools view {output.delly_res_bcf} > {output.delly_res_vcf}
+
+        '''
+
+
 
 #Using freeBayes for variant calling after mapping, the custom parameters is set to better identify low frequency variants
 rule FreeBayes:
@@ -230,7 +249,7 @@ rule FreeBayes:
     output:
         vcfout=outfolder+"/{sample}/freebayes_variant_calling/{sample}_freeBayes.vcf", 
     shell:
-        "freebayes -f {input.fa} -t {input.bed} -b {input.bam} > {output}"
+        "freebayes -m 30 -q 20 -Q 0 -S 0 -F 0.08 -n 3 -f {input.fa} -t {input.bed} -b {input.bam} > {output}"
 
 #-m 30 -q 20 -Q 0 -S 0 -F 0.08 -n 3 c'est le param qui fonctionne avec gyrA et katG 
 #-m --min-mapping-quality -q --min-base-quality -Q --mismatch-base-quality-threshold -S --genotype-variant-threshold  -F --min-alternate-fraction 
@@ -254,19 +273,16 @@ rule Coverage:
         bedtools coverage -a {input.bed} -b  {input.bam} -d > {output.coverageGenesout_base}
         '''
 #bedtools coverage -a {input.bed} -b  {input.bam} -mean > {output.coverageGenesout_mean}
-#selecting the genes non-covered 
+
 rule Select_Coverage:
     input:
         coverageGenesinput=outfolder+"/{sample}/coverage/{sample}_coverageResistGenes",
-        coverageGenesout_base=outfolder+"/{sample}/coverage/{sample}_coverageResistGenes_base"
     output:
         non_coveredGenes_out=outfolder+"/{sample}/coverage/{sample}_coverageResistGenes_selectedNonCovered.txt",
-        coverage_qc=outfolder+"/{sample}/coverage/{sample}_coverage_qc.txt"
+       
     shell:
         '''
-        python scripts/coverage_computing_table.py {input.coverageGenesout_base} {output.coverage_qc} 
         cat  {input.coverageGenesinput} |grep -v "1.0000000" > {output.non_coveredGenes_out}
-
         ''' 
 
 
@@ -591,7 +607,7 @@ rule cocatenate_and_select_data_set:
     shell:
         '''
         cat {input.output_join_bed_selected_cols_sorted_not_rrs_rrl} {input.selected_cols_join_POS_rrs_rrl}  > {output.cocatenate_not_rrs_rrl_selected_cols_join_POS_rrs_rrl}
-        grep -v -P 'c\.[A-Z]\*|c\..*[-]\d{{4,5}}' {output.cocatenate_not_rrs_rrl_selected_cols_join_POS_rrs_rrl} | sort -n -k1,1 > {output.select_line_join_POS_rrs_rrl_sorted}
+        grep -v -P 'c\.[A-Z]\*|c\.[A-Z][-]\d{{4,5}}' {output.cocatenate_not_rrs_rrl_selected_cols_join_POS_rrs_rrl} | sort -n -k1,1 > {output.select_line_join_POS_rrs_rrl_sorted}
         '''
 
 #Corresponding mutation to an antibiotics related region  
@@ -746,36 +762,62 @@ rule result_all_graphic_table_file:
         mtbseq_stat=outfolder+"/{sample}/mtbseq_results_files/Statistics/Mapping_and_Variant_Statistics.tab",
         mtbseq_lin=outfolder+"/{sample}/{sample}_MTBseq_final_report.tab",
         tbProfilerout_results=outfolder+"/{sample}/tb_profiler_results_files/results/{sample}_tbprofiler_report.results.txt", 
-        coverage_qc=outfolder+"/{sample}/coverage/{sample}_coverage_qc.txt"
+        coverageGenesout_base=outfolder+"/{sample}/coverage/{sample}_coverageResistGenes_base"
     output:
         table1=outfolder+"/{sample}/{sample}_table1.csv",
         table2=outfolder+"/{sample}/{sample}_table2.csv",
         table3=outfolder+"/{sample}/{sample}_table3.csv",
         all_table=outfolder+"/{sample}/{sample}_table_1_2_3.tab",
-        mapping_quality=outfolder+"/{sample}/{sample}_mapping_QC.csv"
+        mapping_quality=outfolder+"/{sample}/{sample}_mapping_QC.tab",
+        coverage_qc=outfolder+"/{sample}/{sample}_coverage_qc.tab",
+        coverage_del=outfolder+"/{sample}/{sample}_coverage_deletion.tab",
+        mapping_quality_excel=outfolder+"/{sample}/{sample}_mapping_QC.xlsx",
+        tables_excel=outfolder+"/{sample}/{sample}.xlsx"
+    
+
     shell:
-        '''
-        python scripts/script_reformating_after_merge.py  {input.all_merge_notfiltered} {output.table1} {output.table2} {output.table3}
+        ''' 
         tbprof_lineage=`cat {input.tbProfilerout_results} | sed 's/lineage//'| sed -n '/^Lineage report/,/Resistance report/p' | grep -v 'report'  | grep -v '^-' | grep -v '^$' | grep -v 'Family' |sort -n -k 1,1 | sed 1d | tr ' ' '_'|tail -1| cut -f1,3`
-        mtbseq_lineage=`cat {input.mtbseq_lin} | cut -f8,9 | tr -d "'" | sed 1d`
+        mtbseq_lineage=`cat {input.mtbseq_lin} | sed 1d| cut -f8,9 | tr -d "'" | tr '\t' '_'`
+        mtbseq_lineage_for_tab=`cat {input.mtbseq_lin} | sed 1d| cut -f8,9 | tr -d "'" `
         glimsName=$(basename ${input.all_merge})
         dossier=`echo $glimsName | cut -d'_' -f1`
-        espece=`cat {input.all_merge} | grep -A2 'Kraken2' | tail -1 | cut -f2 |sed 's/^ *//'` 
+        espece=`cat {input.all_merge} | grep -A2 'Kraken2' | tail -1 | cut -f2 |sed 's/^ *//'| tr ' ' '_'`
+        python scripts/script_reformating_after_merge.py  {input.all_merge_notfiltered} {output.table1} {output.table2} {output.table3}  $dossier $espece $mtbseq_lineage  
         echo "N° Dossier:\t$dossier\n" >> {output.all_table}
         echo "Espèce:\t$espece \n" >> {output.all_table}
-        echo "MTBseq lignée:\t$mtbseq_lineage \n" >> {output.all_table}
-        
+        echo "MTBseq lignée:\t$mtbseq_lineage_for_tab\n" >> {output.all_table}
         echo "\n\n">>{output.all_table}
         cat {output.table1} >>  {output.all_table}
         echo "\n\n">>{output.all_table}
         cat {output.table2} >>  {output.all_table}
-        echo "Contrôles de qualité\n" > {output.mapping_quality}|
-        echo "\n" >> {output.mapping_quality}
+
+        
         pc_mapped_read=`cat {input.mtbseq_stat} | cut -f7 | tr -d "'" | sed 1d`
-        echo "Pourcentage de reads mappées: $pc_mapped_read \n" >> {output.mapping_quality}
         pc_mediane_coverage_chrom=`cat {input.mtbseq_stat} | cut -f14 | tr -d "'" | sed 1d`
+        python scripts/coverage_computing_table.py {input.coverageGenesout_base} {output.coverage_qc} {output.coverage_del} $pc_mapped_read $pc_mediane_coverage_chrom
+
+        
+        echo "Contrôles de qualité\n" > {output.mapping_quality}
+        echo "Contrôles de qualité\n" > {output.mapping_quality}
+        echo "\n" >> {output.mapping_quality}
+        echo "Pourcentage de reads mappées: $pc_mapped_read \n" >> {output.mapping_quality}
         echo "Profondeur médiane sur le génome: $pc_mediane_coverage_chrom \n" >> {output.mapping_quality}
         echo "\n\n" >> {output.mapping_quality}
-        cat {input.coverage_qc} | cut -f1,4,5 >> {output.mapping_quality}
-
+        cat {output.coverage_qc} | cut -f1,4,5,6 >> {output.mapping_quality}
+        echo "\n\n" >> {output.mapping_quality}
+        echo "Délétion pas couverte \n" >> {output.mapping_quality}
+        cat {output.coverage_del}  >> {output.mapping_quality}
         '''
+
+
+        
+        #python scripts/coverage_computing_table.py {input.coverageGenesout_base} {output.coverage_qc} {output.coverage_del} $pc_mapped_read $pc_mediane_coverage_chrom
+
+        #echo "Pourcentage de reads mappées: $pc_mapped_read \n" >> {output.mapping_quality}
+        #echo "Profondeur médiane sur le génome: $pc_mediane_coverage_chrom \n" >> {output.mapping_quality}
+        #echo "\n\n" >> {output.mapping_quality}
+        #cat {output.coverage_qc} | cut -f1,4,5,6 >> {output.mapping_quality}
+        #echo "\n\n" >> {output.mapping_quality}
+        #echo "Délétion \n" >> {output.mapping_quality}
+        #cat {output.coverage_del}  >> {output.mapping_quality}

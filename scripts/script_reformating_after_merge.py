@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# python scripts/script_reformating_after_merge.py  {input.all_merge_notfiltered} {output.table1} {output.table2} {output.table3}
+# python scripts/script_reformating_after_merge.py  {input.all_merge_notfiltered} {output.table1} {output.table2} {output.table3} {dossier} {espece} {lignee}
 
 
 
@@ -22,17 +22,28 @@ d_drug_french['BDQ']
 #/home/azadeh/workspace/snakemake_tutorial/snakemake-snakemake-tutorial-data-f17b467/script_reformating_graphicInterface_after_merge/2408056426BEL_S48_join_table_dailyPipeline_Tbprofiler_MTBseq_NOTFiltered.csv
 #place_to_write=os.path.dirname(sys.argv[1])+"/"
 path_to_write, filename = os.path.split(sys.argv[1])
-all_table=filename.split('_')[0]
-df1=pd.read_csv(sys.argv[1], delimiter="\t")
+all_table=filename.split('_')[0]+"_"+filename.split('_')[1]
 path_table1_toWrite=sys.argv[2]
 path_table_toWriteExcel=path_to_write+"/"+ all_table +".xlsx"
 path_table2_toWrite=sys.argv[3]
 path_table3_toWrite=sys.argv[4]
-print(path_table_toWriteExcel)
+dossier=sys.argv[5]
+espece=sys.argv[6]
+lignee=sys.argv[7]
 
 
+
+dfDossier = pd.DataFrame.from_dict({'N° Dossier:': [dossier] , 'Espèce:' :[espece.replace('_',' ')] , 'lignée Coll':[lignee.replace('_',' ')] } , orient='index')
+
+with pd.ExcelWriter (path_table_toWriteExcel) as writer:
+    dfDossier.to_excel(writer,sheet_name='dossier_lignée', index=True)  
+
+
+
+df1=pd.read_csv(sys.argv[1], delimiter="\t")
+
+df1['HGVS_C']=df1.apply(lambda x:  x[2]+str(x[8])+x[3]  if (x[7]=="rrs" or x[7]=="rrl" )  else  x[10], axis=1)
 df1=df1.drop(columns=['N_WHOALL_R', 'N_WHOALL_S','GENEID', 'REF', 'ALT'])
-
 def mut_synonym(x):
     return(x[0]==x[-1] and x!="NaN" and x[0] in ['C','D','S','Q','K','I', 'P', 'T','F', 'N','G', 'H', 'L', 'R', 'W', 'A','V','E','Y','M'])
 
@@ -50,16 +61,17 @@ dfreformat=dfreformat.loc[dfreformat['Mutation (AA 1 lettre)']!="True"]
 #table_3 renaming all columns 
 dfreformat_table=dfreformat[['Antibiotique','Gène', 'Position génomique','Mutation (nucléotide)','Mutation (AA 1 lettre)', 'Mutation (AA 3 lettres)', 'Fréquence', 'Profondeur', 'PhyResSE', 'Walker' , 'Tbprofiler','MTBseq', 'OMS' ]]
 dfreformat_table_3=dfreformat_table
-dfreformat_table_3['MTBseq']=dfreformat_table_3['MTBseq'].replace("ND" , "Non détecté")
+dfreformat_table_3['MTBseq']=dfreformat_table_3['MTBseq'].replace("ND" , "Incertain")
 dfreformat_table_3['MTBseq']=dfreformat_table_3['MTBseq'].replace("Res" , "Résistant")
 dfreformat_table_3['MTBseq']=dfreformat_table_3['MTBseq'].apply(lambda x : "Phylogénie" if re.match(r"phylo \(.*\)", str(x)) or x=="Polymorphism" else x)
 
-dfreformat_table_3['Tbprofiler']=dfreformat_table_3['Tbprofiler'].replace("ND" , "Non détecté")
+dfreformat_table_3['Tbprofiler']=dfreformat_table_3['Tbprofiler'].replace("ND" , "Incertain")
 dfreformat_table_3['Tbprofiler']=dfreformat_table_3['Tbprofiler'].replace("Res" , "Résistant")
 
 dfreformat_table_3['Walker']=dfreformat_table_3['Walker'].replace("Resistant" , "Résistant")
-dfreformat_table_3['Walker']=dfreformat_table_3['Walker'].replace("Uncharacterised" , "Non détecté")
-dfreformat_table_3['Walker']=dfreformat_table_3['Walker'].apply(lambda x : "Phylogénie" if x in ["Benign", "phylo" ] else x)
+dfreformat_table_3['Walker']=dfreformat_table_3['Walker'].replace("Uncharacterised" , "Incertain")
+dfreformat_table_3['Walker']=dfreformat_table_3['Walker'].replace("phylo" , "Phylogénie")
+#dfreformat_table_3['Walker']=dfreformat_table_3['Walker'].apply(lambda x : "Phylogénie" if x in ["Benign", "phylo" ] else x)
 
 
 
@@ -69,15 +81,23 @@ dfreformat_table_3['PhyResSE']=dfreformat_table_3['PhyResSE'].apply(lambda x : "
 dfreformat_table_3['Mutation (nucléotide)']=dfreformat_table_3['Mutation (nucléotide)'].apply(lambda x : str(x).lower())
 
 
+
 dfreformat_table_3.to_csv(path_table3_toWrite, sep='\t', index=False)
 #path_table_toWriteExcel="test.xlsx"
-with pd.ExcelWriter (path_table_toWriteExcel) as writer:
+
+
+################
+
+    
+
+
+
+with pd.ExcelWriter (path_table_toWriteExcel, mode='a') as writer:
     dfreformat_table_3.to_excel(writer,sheet_name='table_3', index=False)
 #dfreformat_table_2
 #dfreformat=dfreformat1
 
 
-# In[ ]:
 
 
 def tbprof_res(x) :
@@ -102,7 +122,7 @@ def walker_res(x) :
     walker=x[9]    
     if walker=="Resistant":
         return ("Résistant" , "walker")
-    if walker in ["Benign", "phylo" ] :
+    if walker=="phylo":
         return ("Sensible" , "walker")
     else:
         return ("INCONNU" , "walker")
@@ -172,7 +192,7 @@ def interpretation_source(x):
 
 #list of gene for printing
 
-lis_of_gene_for_print=['eis', 'rrs', 'atpE' , 'mmpL5' , 'mmpS5' , 'pepQ', 'Rv0678', 'tlyA' , 'ddn', 'fbiA' , 'fbiB' ,'fbiC','fgd1' ,'fbiD', 'Rv2983','embB' , 'ethA', 'inhA','ahpC', 'dnaA', 'glpK', 'hadA', 'katG', 'mshA', 'ndh', 'Rv0010c', 'Rv1129c', 'Rv1258c', 'Rv2752c', 'gyrA','gyrB', 'rplC' , 'rrl', 'clpC1' , 'panD', 'pncA', 'PPE35', 'rpsA', 'Rv3236c', 'sigE', 'rpoB', 'gid', 'rpsL']
+lis_of_gene_for_print=['eis', 'rrs', 'atpE' , 'mmpL5' , 'mmpS5' , 'pepQ', 'Rv0678', 'tlyA' , 'ddn', 'fbiA' , 'fbiB' ,'fbiC', 'folC', 'fgd1' ,'fbiD', 'Rv2983','embB' , 'ethA', 'inhA','ahpC', 'dnaA', 'glpK', 'hadA', 'katG', 'mshA', 'ndh', 'Rv0010c', 'Rv1129c', 'Rv1258c', 'Rv2752c', 'gyrA','gyrB', 'rplC' , 'rrl', 'clpC1' , 'panD', 'pncA', 'PPE35', 'rpsA', 'Rv3236c', 'sigE', 'rpoB', 'gid', 'rpsL']
 
 
 dfreformat=df1.rename(columns={'ANTIBIO':'Antibiotique' , 'GENE':'Gène' , 'POS':'Position génomique' , 'HGVS_C':'Mutation (nucléotide)', 'HGVS_P':'Mutation (AA 1 lettre)', 'HGVS_P_3L':'Mutation (AA 3 lettres)','Freq_Mutated':'Fréquence','DP': 'Profondeur', 'P_INTER':'PhyResSE', 'W_INTER':'Walker', 'Res_TBprof':'Tbprofiler','Res_MTBseq':'MTBseq','WHOALL_GRADING':'OMS'})
@@ -286,7 +306,7 @@ table1_resistance_Mutaggregate
 
 
 #table1_resistance_Mutaggregate.columns
-table1_to_print =table1_resistance_Mutaggregate.rename(columns={'Interprétation':'Résistance génotypique'   , 'Mutation' : 'Mutations' })
+table1_to_print =table1_resistance_Mutaggregate.rename(columns={'Interprétation':'Résistance génotypique' , 'Mutation' : 'Mutations' })
 table1_to_print.to_csv(path_table1_toWrite, sep='\t', index=True)
 with pd.ExcelWriter (path_table_toWriteExcel, mode='a') as writer :
     table1_to_print.to_excel(writer,sheet_name='table_1')
