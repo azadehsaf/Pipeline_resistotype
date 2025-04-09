@@ -1,2 +1,3 @@
 # Pipeline_resistotype
-This repository contains a pipeline (snakemake file) aims to identify all SNP/SNV within a group of genes belong to Mycobacterium tuberculosis (reference H37rv) related to antibiotics resistance.
+This repository contains a simple pipeline, snakemake file with related scripts and data. The pipeline is a tool to identify all SNV SNP/InDel within a group of antibiotics resitance genes belonging to Mycobacterium tuberculosis (reference H37rv).
+
