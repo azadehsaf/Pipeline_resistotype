@@ -6,8 +6,11 @@ This pipline is useable for short read Mycobacterium Tuberculosis strain in pair
 #The pipline uses:
 
 -A homemade pipeline wich call for each SNPs and InDels through resistance genes. 
+
 -MTBseq https://github.com/ngs-fzb/MTBseq_source
+
 -TB-profiler 2.8
+
 -kraken 2
 
 
