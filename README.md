@@ -49,5 +49,34 @@ The pipeline activates MTBseq conda environment while running MTBseq rule.
 # Calling SNVs SNPs InDel:
 
 
-[Presentation 24.pdf](https://github.com/user-attachments/files/19706825/Presentation.24.pdf)
+    
+
+ 
+
+# Config file .yaml
+
+datas: "/home/admin-rac/Documents/run_87" 
+output_folder: "/home/admin-rac/workspace/Pipeline_resistotype-master/output_Run_87"
+reference: "/home/admin-rac/workspace/Pipeline_resistotype-master/data"
+
+
+pair:
+ [tab]R1 : R1
+ [tab]R2 : R2
+    
+samples:
+ [tab]2503005535OUK_lib : 2503005535OUK_lib
+ [tab]2412067017SHA_lib : 2412067017SHA_lib,
+ [tab]2412072999BEG_lib : 2412072999BEG_lib,
+ [tab]2502034815OLL_lib : 2502034815OLL_lib
+
+
+# Runnin on Computing Cloud: 
+
+
+
+# Output Files and Format
+
+
+# Scripts and Data Folder
 
