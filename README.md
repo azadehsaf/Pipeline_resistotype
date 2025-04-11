@@ -47,11 +47,11 @@ snakemake -s  snakefile_WHO2023_Withcomment_removing_pindel_modifEtoile_graphicT
 The pipeline activates MTBseq conda environment while running MTBseq rule.
 
 # Calling SNVs SNPs InDel:
+[SNV_calling_pipeline.pdf](https://github.com/user-attachments/files/19707089/SNV_calling_pipeline.pdf)
 
 
-    
+ [SNV_calling_pipeline-2.pdf](https://github.com/user-attachments/files/19707142/SNV_calling_pipeline-2.pdf)
 
- 
 
 # Config file .yaml
 
