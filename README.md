@@ -16,7 +16,7 @@ The sequence have to be called as follow:
 
 -TB-profiler 2.8 https://github.com/jodyphelan/TBProfiler
 
--kraken2 https://github.com/DerrickWood/kraken2
+-Kraken2 https://github.com/DerrickWood/kraken2
 
 # INSTALLATION:
 
@@ -26,8 +26,8 @@ To run the pipeline you need:
  
  -install snakemake.
 
-The list of package is given by "spec-file-resistotype-pipeline.txt"
-The easiest way to install all needed tools is to clone the file "spec-file-resistotype-pipeline.txt" and then create the conda envs and use conda to install all mandatory software in conda envs.  
+The list of packages is given by "spec-file-resistotype-pipeline.txt"
+The easiest way to install all needed tools (including tbProfiler and kraken2) is to clone the file "spec-file-resistotype-pipeline.txt" and then create a new conda env and use teh conda env to install all mandatory software in the same conda envs.  
 
 conda create --name myenv --file spec-file-resistotype-pipeline.txt
 conda install --name myenv --file spec-file.txt
@@ -38,6 +38,7 @@ conda env create -f mtbseq-env.yaml
 
 
 You may need to install pdflatex.
+If you use DSRC compression, then before using pipeline please install DSRC in your home or in conda env that you created for running pipeline.  
 
 Once conda environment is activated then you can run the pipeline 
 
