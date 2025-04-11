@@ -1,19 +1,22 @@
 # Pipeline_resistotype
-This repository contains a simple pipeline, snakemake file with related scripts and data. The pipeline is a tool to identify all SNV SNP/InDel within a group of antibiotics resistance genes belonging to Mycobacterium tuberculosis (reference H37rv).
+This repository contains a simple pipeline, a snakemake file with related scripts and data. The pipeline is a tool to identify all SNV SNP/InDel within a group of antibiotics resistance genes belonging to Mycobacterium tuberculosis reference H37rv .
 This pipeline also allows to identify the taxonomy and lineage of a given MTB strain.
-This pipline is useable for short read Mycobacterium Tuberculosis strain in paired_end "Fastq" file given in [A-Z][0-9]_[A-Z][0-9]_R[12].fastq 
 
-#The pipline uses:
+# Usage 
+This pipline is useable for short paired_end read of Mycobacterium Tuberculosis strain in ".fastq.gz" or "fastq.dsrc" file.
+
+The sequence have to be called as follow:
+([A-Za-z]+|[0-9]+)+_([A-Za-z]+|[0-9]+)+_R[12].fastq.gz
+
+# The pipline bases on:
 
 -A homemade pipeline wich call for each SNPs and InDels through resistance genes. 
 
 -MTBseq https://github.com/ngs-fzb/MTBseq_source
 
--TB-profiler 2.8
+-TB-profiler 2.8 https://github.com/jodyphelan/TBProfiler
 
--kraken 2
-
-
+-kraken2 https://github.com/DerrickWood/kraken2
 
 # INSTALLATION:
 
