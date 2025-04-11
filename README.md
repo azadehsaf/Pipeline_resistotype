@@ -46,3 +46,8 @@ Once conda environment is activated then you can run the pipeline
 snakemake -s  snakefile_WHO2023_Withcomment_removing_pindel_modifEtoile_graphicTables --use-conda --core 15
 The pipeline activates MTBseq conda environment while running MTBseq rule.
 
+# Calling SNVs SNPs InDel:
+
+
+[Presentation 24.pdf](https://github.com/user-attachments/files/19706825/Presentation.24.pdf)
+
