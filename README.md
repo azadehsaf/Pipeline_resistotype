@@ -51,7 +51,7 @@ The pipeline activates MTBseq conda environment while running MTBseq rule.
 [SNV_calling_pipeline.pdf](https://github.com/user-attachments/files/19707089/SNV_calling_pipeline.pdf)
 
 
-![alt text](https://github.com/user-attachments/files/19707142/SNV_calling_pipeline-2.pdf)
+![alt text]
 
 
 # Config file .yaml
