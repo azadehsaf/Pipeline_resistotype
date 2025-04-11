@@ -27,7 +27,7 @@ To run the pipeline you need:
  -install snakemake.
 
 The list of packages is given by "spec-file-resistotype-pipeline.txt"
-The easiest way to install all needed tools (including tbProfiler and kraken2) is to clone the file "spec-file-resistotype-pipeline.txt" and then create a new conda env and use teh conda env to install all mandatory software in the same conda envs.  
+The easiest way to install all needed tools (including tbProfiler and kraken2) is to clone the file "spec-file-resistotype-pipeline.txt" and then create a new conda env and install all mandatory software in the same conda envs.  
 
 conda create --name myenv --file spec-file-resistotype-pipeline.txt
 conda install --name myenv --file spec-file.txt
