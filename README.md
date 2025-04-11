@@ -77,8 +77,11 @@ samples:
  [tab]2502034815OLL_lib : 2502034815OLL_lib
 
 
-# Runnin on Computing Cloud: 
 
+
+
+
+# Output Files and Format
 All result is availabe in "output_folder" given in config.yaml file.
 
 For each sample the is a result folder placed in "output_folder".
@@ -90,8 +93,9 @@ The statistics of gene coverage and mapping along with report of deleted fragmen
 
 
 
-# Output Files and Format
-
 
 # Scripts and Data Folder
+
+# Runnin on Computing Cloud: 
+Need a config File 
 
