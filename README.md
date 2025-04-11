@@ -36,8 +36,6 @@ Next you need to install MTBseq, by clonning and using "mtbseq-env.yaml"
 
 conda env create -f mtbseq-env.yaml
 
-
-You may need to install pdflatex.
 If you use DSRC compression, then before using pipeline please install DSRC in your home or in conda env that you created for running pipeline.  
 
 Once conda environment is activated then you can run the pipeline 
