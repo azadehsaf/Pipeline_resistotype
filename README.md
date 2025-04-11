@@ -81,6 +81,15 @@ samples:
 
 # Runnin on Computing Cloud: 
 
+All result is availabe in "output_folder" given in config.yaml file.
+
+For each sample the is a result folder placed in "output_folder".
+
+The output of SNV calling with taxonomy and lineage is generated in a  excel table "sampleName.xlsx"
+
+
+The statistics of gene coverage and mapping along with report of deleted fragments is genated  "sampleName_mapping_QC.xlsx   
+
 
 
 # Output Files and Format
