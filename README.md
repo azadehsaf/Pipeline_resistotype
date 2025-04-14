@@ -48,8 +48,16 @@ snakemake -s  snakefile_WHO2023_Withcomment_removing_pindel_modifEtoile_graphicT
 The pipeline activates MTBseq conda environment while running MTBseq rule.
 
 # Calling SNVs SNPs InDel:
+
+Raw data were analyzed using in house pipeline (BWA-MEM 0.7.17-r1188, Samtools 1.15.1 mpileup 1.15.1, Freebayes V1.0.2 and Varscan V2.4.6). 
+All SNPs and SNVs were annotated by OMS 2023 Catalogue of mutations in MTB.  
+For lineage identification, MTBC_BC barcoding method ("10.1128/msphere.00169-23") was used.
+
+Furthermore two more pipelines: TB-profiler 2.8.12 and MTBseq 1.1.0  were used  for cross validation of our findings. Coll lineage reported by both pipelines was used to confirm our lineage report. 
+
 [SNV_calling_pipeline.pdf](https://github.com/user-attachments/files/19707089/SNV_calling_pipeline.pdf)
 ![alt_text](https://github.com/user-attachments/assets/780383d6-5fc8-42f0-a582-dc119619fcee)
+
 
 # Config file .yaml
 
