@@ -62,7 +62,7 @@ Furthermore two more pipelines: TB-profiler 2.8.12 and MTBseq 1.1.0  were used  
 # Resistance Reporting:
 
 For identifying all variants involving in resistance the pipeline uses Walker and PhyresSE database of mutation in addition to OMS 2023 Catalogue of mutations in MTB.
-Furthermore Tbprofiler and MTBseq report their own findins. To sum it all up pipeline uses the following steps to presume a variant "Resistance" ou "Sensitive". 
+Furthermore Tbprofiler and MTBseq report their own findins. To sum it all up pipeline uses the following steps persuming a variant "Resistance"/"Sensitive"/"Undetermined" or "Inconnu". 
 
 ![alt_text](https://github.com/user-attachments/assets/270f36a2-d440-4f1a-b349-6be3cf5921b5)
 
