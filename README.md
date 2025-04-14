@@ -59,6 +59,14 @@ Furthermore two more pipelines: TB-profiler 2.8.12 and MTBseq 1.1.0  were used  
 ![alt_text](https://github.com/user-attachments/assets/780383d6-5fc8-42f0-a582-dc119619fcee)
 
 
+# Resistance Reporting:
+
+Resistance reposting follows the step bellow: 
+
+![alt_text](https://github.com/user-attachments/assets/270f36a2-d440-4f1a-b349-6be3cf5921b5)
+
+
+
 # Config file .yaml
 
 datas: "/home/admin-rac/Documents/run_87" 
